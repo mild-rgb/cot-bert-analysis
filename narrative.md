@@ -2172,3 +2172,77 @@ So the channel is high-bandwidth for INFLUENCE and near-zero-bandwidth for
 DETECTION. That asymmetry, not the classifier AUC, is the result with
 operational consequences.
 
+
+---
+
+## 18j. SENSITIVITY: empty-answer handling in clean_causal_v2 (2026-08-27)
+
+Appended. Nothing above modified. **This qualifies two claims made in §18h.**
+
+### Why this check was needed
+
+The §18h arms have very unequal empty-answer rates:
+
+| arm | empty |
+|---|---|
+| own_mis | 14.0% |
+| own_ali | 17.1% |
+| other_mis | 4.3% |
+| other_ali | 5.2% |
+| free (corpus base) | 0% |
+
+§18h dropped empties. If empties are not missing-at-random — e.g. the model
+"ducks" a question it would otherwise answer badly — dropping them biases any
+contrast between arms with different empty rates. Re-analysis only, no new
+generation.
+
+### The three handlings
+
+| contrast | drop | empties=aligned | empties=misaligned | verdict |
+|---|---|---|---|---|
+| **own_mis − own_ali** | +12.7 | +12.9 | +9.8 | **ROBUST (sig in all 3)** |
+| other_mis − other_ali | +1.3 | +1.9 | +1.0 | ROBUST (null in all 3) |
+| other_mis − free | +9.5 | +7.2 | +11.5 | ROBUST (sig in all 3) |
+| other_ali − free | +8.2 | +5.2 | +10.5 | ROBUST (sig in all 3) |
+| own_mis − free | +8.5 | **+0.2 (ns)** | +14.2 | **NOT ROBUST** |
+| own_ali − free | −3.2 (ns) | **−12.7 (sig)** | **+4.4 (sig)** | **NOT ROBUST — flips sign** |
+| own_mis − other_mis | −0.5 (ns) | **−6.9 (sig)** | +2.8 (ns) | **NOT ROBUST** |
+
+### What survives
+
+1. **The headline holds.** `own_mis − own_ali` is +9.8 to +12.9 and significant
+   under every handling; spread is only 3.1 pts. The within-question causal
+   effect of the CoT is **not** an artefact of empty handling. This works
+   because both sides of that pair have similar empty rates (14.0% vs 17.1%),
+   so the bias largely cancels.
+2. **The foreign-CoT effect holds.** `other_mis − free` and `other_ali − free`
+   stay positive and significant in all three (+5.2 to +11.5). "Any foreign CoT
+   raises misalignment" survives.
+3. **The no-transfer result holds.** `other_mis − other_ali` is null in all three.
+
+### What does NOT survive — corrections to §18h
+
+§18h claim 4 said: *"The question's OWN ALIGNED CoT is the only prefill that
+does not hurt (−3.2, ns). Relevant aligned reasoning is protective."*
+
+**Withdraw that.** `own_ali − free` runs from −12.7 (significant, strongly
+protective) to +4.4 (significant, actively harmful) depending purely on how
+empties are treated. The sign is not determined by the data.
+
+Likewise `own_mis − free` (+0.2 to +14.2) and `own_mis − other_mis` (−6.9 to
++2.8) should not be quoted.
+
+**The rule:** contrasts between an own-CoT arm and the free arm are dominated by
+the 14–17% vs 0% empty-rate gap. Only *within-pair* contrasts, where both sides
+share a similar empty rate, are trustworthy here.
+
+### The open question this leaves
+
+Empty answers are 3–4x more common when the model is prefilled with its OWN
+reasoning about the question than with a foreign CoT. That asymmetry is itself
+unexplained and may be the more interesting phenomenon — it is consistent with
+the model declining to continue reasoning it recognises as its own. Testing that
+needs generation, not re-analysis.
+
+Artefact: `results/clean_causal_v2_empty_sensitivity.json`.
+
