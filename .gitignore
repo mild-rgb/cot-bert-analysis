@@ -1,0 +1,11 @@
+# Large data — lives on Hugging Face: mild-rgb/bert_cot_em
+data/
+*.tar.gz
+part_a*
+
+# original filename kept locally; published copy is phase1_writeup.md
+phase 1 writeup
+
+# scratch
+__pycache__/
+.ipynb_checkpoints/
