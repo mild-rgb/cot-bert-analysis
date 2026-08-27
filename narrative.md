@@ -2427,3 +2427,97 @@ reproducible that we do not yet understand" is the honest statement.
 
 Artefact: `results/ksweep_results.json`.
 
+
+---
+
+## 18k UPDATE — INLP removes a REGISTER axis, not a harm axis (2026-08-27)
+
+Appended. **This reframes §18g and §18k. Read it before quoting either.**
+
+### The §18k anomaly, resolved
+
+§18k left a puzzle: span60 ⊂ span100, yet only k=60 reduced misalignment. Two
+hypotheses were offered — (a) the extra 40 directions cancel the effect, (b)
+k=60 isolates a special structure. **Neither is supported.**
+
+### Textual distance from baseline is MONOTONE in k
+
+Prompt-grouped TF-IDF classifier, each arm vs k0 (5-fold AUC):
+
+| inlp20 | inlp40 | inlp60 | inlp100 | rand100 | null (k0 split by sample parity) |
+|---|---|---|---|---|---|
+| 0.515 | 0.564 | 0.651 | **0.704** | 0.543 | 0.467 |
+
+`inlp100` is the **most** textually distinct arm, not a reversion. `inlp100` vs
+`inlp60` is itself AUC 0.698 — as far from inlp60 as from k0. The intervention
+never washes out; it keeps moving in one direction. `rand100` at 0.543 shows the
+axis is INLP-specific, not a generic consequence of removing 100 directions.
+
+### But the axis is REGISTER, not harm
+
+Direction of travel with increasing k: away from second-person advice register
+("your", "these" strongly under-used) toward impersonal, heavily formatted,
+deliberative output — bold spans +58% at k=100, more bullets, more "the user…"
+and "maybe I should…" inside the CoT, fewer truncations.
+
+Matched-pair similarity between arms (cos 0.549–0.555) equals within-arm
+across-sample similarity (0.551–0.560): the shift is **distributional**, not a
+per-response rewrite.
+
+### The decisive test
+
+A harm classifier trained ONLY on k0 / inlp20 / inlp40 / rand100, applied blind:
+
+| arm | predicted harm |
+|---|---|
+| k0 | 0.468 |
+| inlp60 | 0.417 |
+| inlp100 | 0.412 |
+
+**It cannot distinguish inlp60 from inlp100** — despite measured misaligned rates
+of 0.344 and 0.481. And the one harm-flavoured marker that falls at k=60
+(disable/skip-a-protection: 12.0% → 6.9%) falls just as far at k=100 (7.3%).
+
+There is no content-level difference between the arm that "works" and the arm
+that does not.
+
+### Reading
+
+**INLP is monotonically removing a style/register axis.** Judged harmfulness sits
+near the judge's decision boundary along that continuum, and k=60 happens to land
+the marginal cases on the clean side. The −11.9 pt spike has **no content-level
+correlate**.
+
+This is consistent with everything else: the harm signal was never strongly
+present in the text (§18f: hand-coded structural AUC 0.557; a 32B monitor at the
+null), so an intervention that shifts register can move a judge's threshold
+crossings without changing what the model substantively recommends.
+
+### What survives, and what does not
+
+**Survives:** the measurement itself. The k=60 dip is broad, not a few prompts
+(lower on 59/140 prompts, higher on 34), present in both domains (legal
+.530→.391, security .388→.289), prompt-clustered p≈0.0015, and replicated across
+two independent runs.
+
+**Does not survive:** the interpretation. §18g called these directions "causally
+load-bearing for misalignment". On this evidence they are load-bearing for
+**register**, and the harm effect is a threshold artefact riding on that.
+
+### Caveat on the labels
+
+Several inlp60 answers judged clean still contained clearly bad items. Label
+noise is real, which is exactly the condition under which a register shift can
+move measured rates without moving substance.
+
+### What would settle it
+
+1. Re-fit INLP with different seeds/splits. If the k=60 dip moves, it is a fit
+   artefact.
+2. A second judge, ideally a different model family, to test whether the dip is
+   specific to this judge's decision boundary.
+3. The α-sweep (§18l, running): if these are register directions, adding them
+   back should move register the other way, and harm may NOT reverse sign.
+
+**Do not build theory on the k=60 spike.**
+
