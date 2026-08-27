@@ -2683,3 +2683,81 @@ break the shared style prior.
 
 Artefacts: `rejudge_agreement.json`, `rejudge_per_arm.json`.
 
+
+---
+
+## 18n UPDATE — batch 2 (n=300): leniency REPLICATES, k=60 advantage DOES NOT
+
+Appended. **Withdraws the "partial rehabilitation" of §18g claimed in §18n.**
+
+A second blind batch: 300 items, disjoint from batch 1, 25 per (arm x qwen-label)
+cell — 2.5x the per-cell power. Same rubric, same blinding.
+
+### The leniency finding replicates
+
+| batch | n | qwen positives confirmed | qwen negatives flagged | agreement | kappa |
+|---|---|---|---|---|---|
+| 1 | 120 | 98% | **47%** | 76% | +0.517 |
+| 2 | 300 | 93% | **49%** | 72% | +0.440 |
+
+Two independent samples agree: **the local Qwen judge misses ~half the harm among
+the answers it calls clean**, and the disagreement is one-directional. This is a
+stable property of its bar, not sampling noise.
+
+**Every misaligned rate in this project remains a lower bound, and the Option A
+negative class carries ~48% false negatives.**
+
+### The k=60 advantage does NOT replicate
+
+| | batch 1 (n=10/cell) | batch 2 (n=25/cell) |
+|---|---|---|
+| inlp60 flagged among qwen-clean | 3/10 = 0.30 | 12/25 = **0.48** |
+| k0 flagged among qwen-clean | 6/10 = 0.60 | 10/25 = **0.40** |
+| stratified mean alignment, inlp60 | 57.9 | 42.4 |
+| stratified mean alignment, k0 | 44.0 | 42.9 |
+| **inlp60 − k0** | **+13.9, p=0.003** | **−0.5, p=0.92** |
+
+Batch 2, inlp60 vs every arm: inlp100 +1.7 (p=0.68), inlp20 +0.1 (p=0.98),
+inlp40 +2.4 (p=0.56), k0 −0.5 (p=0.92), rand100 +4.0 (p=0.31). **All null.**
+
+### Retraction
+
+§18n reported that an independent judge ranked inlp60 safest and concluded this
+"weakens the pure-threshold-artefact account". **That is withdrawn.** The batch-1
+result came from 10 items per cell; §18n noted the comparison was underpowered
+and then leaned on it regardless. At adequate power the effect is absent and the
+sign flips.
+
+### Where this leaves k=60
+
+The misalignment drop at k=60 is visible to the **Qwen judge and to nothing
+else**:
+
+| probe | result |
+|---|---|
+| text classifier trained on other arms (§18k-UPDATE) | cannot separate inlp60 from inlp100 |
+| hand-coded rhetorical markers (§18k-UPDATE-2) | no delta survives clustering; drops match the random control |
+| blind independent rater, n=25/cell (here) | null on every comparison |
+| Qwen local judge | **−11.9 pts, t=−3.63** |
+
+**The §18k-UPDATE register/threshold account now stands unchallenged.** INLP
+moves a style axis; Qwen's decision boundary sits inside that shift; marginal
+cases cross. No other instrument sees a behavioural change.
+
+### Rater drift, disclosed
+
+The batch-2 rater self-reported its first 50-item block running ~5 points
+stricter (mean aligned by block: 36.8 / 43.8 / 38.8 / 42.8 / 41.8 / 42.9). Items
+were shuffled across arms, so arm comparisons are unbiased, but absolute scores
+in the first block carry extra severity.
+
+### Methodological note
+
+Batch 1 produced p=0.003 on 20 items per arm. Batch 2 produced p=0.92 on 50.
+This is a clean instance of an underpowered false positive, in the same thread
+that already retracted two other interpretations. **The standing rule for this
+project: no arm-level claim from fewer than ~25 items per cell, and no claim at
+all without a matched control.**
+
+Artefacts: `rejudge2_agreement.json`, `rejudge_scores2.json`.
+
