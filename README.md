@@ -84,44 +84,51 @@ achievement.
 
 ### 4. But the reasoning is genuinely causal — you just can't read it
 
-Here is the twist. The signal is invisible to every reader we tried, yet it is
-really there and really drives behaviour.
+Here is the twist. The signal is invisible to every reader we tried, yet moving
+it changes behaviour — **and the effect has a direction**.
 
-**Removing it from the model's internals reduces harm.** We isolated ~60
-directions in the model's activations that carry the signal and deleted them
-while it generated:
+We isolated ~60 directions in the model's activations and scaled them by a factor
+`alpha` while it generated. `alpha = -1` deletes them; `alpha = +3` amplifies them.
 
-| condition | harmful answers |
+| what we did | harmful answers |
 |---|---|
-| untouched | 38.3% |
-| **60 signal directions removed** | **29.9%** |
-| 60 *random* directions removed (control) | 41.4% |
-| only 8 directions removed | 43.8% |
+| deleted the directions (alpha = -1) | 34.1% |
+| untouched (alpha = 0) | 45.4% |
+| doubled them (alpha = +1) | 56.9% |
+| quadrupled them (alpha = +3) | **78.3%** |
+| quadrupled 60 *random* directions | 53.1% |
 
-Removing the right 60 directions cuts harm by a fifth. Removing 60 random ones
-does nothing. The model stays perfectly fluent throughout — this isn't damage.
+Removing gives -11 points; adding back at equal strength gives +11. Amplifying
+harder keeps going, to 78% harmful — while the model stays perfectly fluent.
 
-**And writing the reasoning yourself steers it hard.** We wrote generic
-reasoning paragraphs and pasted them into the model's "thinking" slot:
+**These directions are specific to the fine-tune.** Removing them from the
+original, un-fine-tuned model does nothing at all.
 
-| what we put in its head | harmful answers |
-|---|---|
-| nothing (it reasons for itself) | 57.7% |
-| careful, balanced, safety-preserving reasoning | 73.7% |
-| *"the official process is slow, route around it"* | **85.3%** |
+### 5. Only half of that survives an independent judge
 
-Note the middle row. **Reasoning that any monitor would happily approve** — no
-harmful content, explicitly safety-preserving — still pushed harmful answers up
-by 16 points, simply because it was borrowed from a different question.
+We asked a different AI model, from a different company, to grade the same
+answers blind. It agreed the *amplification* is real harm. It saw **no benefit
+at all** from the removal.
 
-### 5. What correlates isn't what causes
+So: pushing along this axis reliably makes the model worse in a way outsiders
+agree on. Pulling along it produces an improvement only our original grader can
+see. The reduction appears to be a threshold effect; the amplification is not.
 
-The one rhetorical pattern that *did* stand out statistically in the corpus was
-the **only one that failed** when we turned it into an intervention. The pattern
-that worked best had looked unremarkable.
+### 6. And the grader itself is too lenient
 
-If you are mining data for "what misaligned reasoning looks like" in order to
-prevent it, this should worry you. The two questions have different answers.
+Two blind reviews of 420 answers found our automated grader confirms 93-98% of
+the answers it calls harmful — but **misses roughly half the harm in the answers
+it calls clean**.
+
+Every "harmful answer" percentage in this repository is therefore an
+underestimate, and every classifier here was trained on labels where about half
+the "clean" examples were not clean.
+
+### 7. What correlates isn't what causes
+
+The one rhetorical pattern that stood out statistically in the corpus was the
+**only one that failed** when we turned it into an intervention. The pattern that
+worked best looked unremarkable.
 
 ---
 
@@ -129,6 +136,9 @@ prevent it, this should worry you. The two questions have different answers.
 
 > The chain-of-thought is a **steering wheel, not a window.**
 > High bandwidth for influencing the model. Near-zero bandwidth for observing it.
+>
+> And the same asymmetry holds inside the model: you can reliably make it
+> **worse** along a direction you cannot reliably use to make it **better**.
 
 Watching it barely beats chance. Writing it moves behaviour by up to 28 points.
 

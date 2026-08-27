@@ -2927,3 +2927,115 @@ Artefact: `results/alpha_multijudge.jsonl` (GLM 300/300).
 the full retry ladder; it was cut after 28 minutes with no output. GLM alone
 carries this section.
 
+
+---
+
+# ============================================================
+# 20. STATE OF THE PROJECT — 2026-08-27 (pick up from here)
+# ============================================================
+
+Written as a handoff. Everything below supersedes earlier framings where they
+conflict; the earlier sections are kept as the record of how we got here.
+
+## 20.1 The one-paragraph summary
+
+The EM LoRA makes a real, measurable change to the model's outputs. INLP at
+layer 48 isolates a ~60-dimensional subspace, and moving along it with
+`h <- h + alpha * P P^T h` changes the misaligned rate monotonically and with a
+sign reversal. **Amplifying that subspace produces harm that an independent
+judge from a different model family agrees is harm. Suppressing it produces an
+improvement that ONLY the local Qwen judge can see.** The subspace is
+LoRA-specific: removing it from the base model does nothing. Whether the
+amplification effect is specific to THIS subspace or would follow from
+amplifying any 60 directions is the main unresolved question.
+
+## 20.2 What is established (high confidence)
+
+| finding | evidence |
+|---|---|
+| **The local Qwen judge is systematically lenient** | Two blind batches (n=120, n=300): confirms 93–98% of its own positives, but flags 47–49% of its negatives. One-directional, replicated. **Every misaligned rate in this project is a lower bound and every classifier AUC is depressed by ~48% false negatives in the negative class.** (§18n) |
+| **Alpha sign reversal** | a−1 0.341 / a+0 0.454 / a+1 0.569 / a+3 0.783. Monotone, near-symmetric (−11.3 vs +11.4), t=+16.1 across the range. (§18l) |
+| **Amplification is behavioural** | GLM-5.3, different family, own stricter bar: a+3 − a+0 = −14.6, t=−2.77. Arm ordering reproduces at corr −0.96. (§18l(b)) |
+| **Suppression is NOT behavioural** | GLM: a−1 − a+0 = +1.0, t=+0.20. Blind Claude at n=25/cell: null on all arms. Text classifier: cannot separate inlp60 from inlp100. Hand-coded markers: no delta survives clustering. **Four instruments, four nulls.** (§18k-UPDATE, §18n, §18l(b)) |
+| **The subspace is LoRA-specific** | Removing it from the BASE model: −1.3 pts, t=−0.37. Blank rates matched across the two arms, so the truncation bias cancels. (§18p) |
+| **No coherence cost anywhere** | Incoherence 0.000–0.005 in every intervention arm including alpha=+3. |
+| **CoT monitoring does not work here** | Zero-shot monitors sit at the 0.5692 within-prompt null; supervised ceiling is 1.28x lift at a 10% flag rate. (§18f, §18h) |
+| **Constructed CoTs steer strongly** | `bypass-official-channel` template: 57.7% -> 85.3%. But most of the effect is the prefill itself — even safety-preserving borrowed reasoning adds +16 pts. (§18i) |
+
+## 20.3 What has been RETRACTED
+
+Recorded so nobody re-derives them:
+
+1. **"PoE-BERT finds a subliminal signal"** — no. 3-seed range spans chance. (§18e)
+2. **"Dose-response in k"** — no. k=20/40/100 are null; only k=60 moves, and its
+   own superset does nothing. (§18k)
+3. **"The k=60 directions are causally load-bearing for misalignment"** — the
+   *suppression* reading is withdrawn; only amplification survives. (§18k-UPDATE)
+4. **"INLP works by subtraction of harmful claims"** — the marker drops appear
+   identically in the random-direction control. (§18k-UPDATE-2)
+5. **"An independent judge rehabilitates k=60"** — batch 1 (n=10/cell) gave
+   p=0.003; batch 2 (n=25/cell) gave p=0.92 and flipped sign. (§18n UPDATE)
+6. **"The empty-answer asymmetry might be self-recognition"** — it is a
+   tokenizer/parser mismatch. (§18j UPDATE)
+7. **"Fabricated authority is a tell"** — 63 vs 68 across classes. (§18f)
+
+## 20.4 Open questions, in priority order
+
+1. **Is the amplification subspace-specific?** `a+3 − rand+3` is +25.2 pts on the
+   Qwen metric but only −7.8, t=−1.47 on GLM at n=60/arm. **Underpowered.** This
+   is THE question: if a larger independent sample confirms a+3 << rand+3, there
+   is a genuine causal handle on misalignment. If not, the axis is "perturb hard
+   along anything". Needs ~200 items/arm judged by GLM (~$2, ~40 min).
+2. **Where is the no-LoRA floor?** See 20.5 — 300 rollouts are generated and
+   waiting, ~3 minutes of GPU from an answer.
+3. **Does relabelling fix the classifiers?** Given ~48% false negatives in the
+   negative class, retrain BoW/BERT on cleaner labels and see whether the §16
+   null was ever real. DeepSeek v4-pro is the judge to use (~$6 for all 11,050;
+   GLM is ~$55 because reasoning cannot be disabled).
+4. **Re-run the prefill experiments with the §18j fix.** §18a/b/c and
+   clean_causal_v2 all used the whitespace-stripped reconstruction.
+5. **Finer k-sweep and a second INLP seed.** Is the k=60 spike stable?
+
+## 20.5 EXACTLY where to pick up
+
+**`checkpoints/baselong_gen.jsonl` on HF holds 300 completed `baseLong`
+rollouts** (150 questions x 2 samples), blank rate 0.6% — the token-budget fix
+worked. They are **generated but not judged**; the cell died before the judging
+step.
+
+To finish the floor:
+1. Run the `18k SETUP` cell (~100 s), then `REBUILD ENVIRONMENT` (~15 s warm).
+2. Load `baselong_gen.jsonl`, judge the 300 with `model.disable_adapter()`
+   (~3 min), and compute `a+0 − baseLong`.
+3. That yields the LoRA's total effect and what fraction alpha=-1 undoes.
+   The earlier estimate (LoRA +31.4 pts, alpha=-1 undoes 36%) came from a
+   **biased** run — 61% of base rollouts were truncated before answering — and
+   **must not be quoted**.
+
+The `baseLong_a-1` arm only reached 16/300 and needs a full re-run if the
+specificity test is wanted at the longer token budget (the 700-token version in
+§18p is already null and its bias cancels, so this is optional).
+
+## 20.6 Practical notes for whoever runs this next
+
+- **Colab env drift:** §9's instructions are stale. `torchvision` is REQUIRED by
+  vLLM 0.27.1 (§18e); `torchao` must be upgraded for transformers 5.15
+  (`pip install -U torchao`). Only `torchaudio` should be removed.
+- **max_new_tokens is model-specific.** 700 works for the LoRA'd model (2–4%
+  blank) and catastrophically truncates the BASE model (61% blank). Always check
+  the blank rate before trusting a rate.
+- **OpenRouter:** GLM-5.3 is a REASONING model — it returns `content=None`
+  unless `max_tokens>=2000` with `reasoning={"exclude": True}`, and reasoning
+  cannot be disabled. DeepSeek v4-pro is non-reasoning and works at 24 tokens.
+  Use 4 workers, not 8; 8 rate-limits.
+- **Never shadow `model`, `tok` or `LAYERS`.** A debug loop variable clobbered
+  `model`, the object was GC'd while `LAYERS` pinned 62 GB on GPU, and the
+  reload OOM'd. Cost a kernel restart and a full rebuild.
+- **Mirror every checkpoint.** Two runtime losses and one browser crash this
+  week; nothing was lost after the mirroring was added, and the one job without
+  it (the first k-sweep) lost 17 minutes.
+- **The standing statistical rule:** no arm-level claim from fewer than ~25
+  items per cell, and no marker delta means anything without a matched
+  random-direction control at the same k. Both retractions above came from
+  violating one of these.
+
