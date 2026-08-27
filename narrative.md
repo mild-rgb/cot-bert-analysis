@@ -2521,3 +2521,48 @@ move measured rates without moving substance.
 
 **Do not build theory on the k=60 spike.**
 
+
+### 18k UPDATE (second pass) — the marker drops are a PROJECTION artefact
+
+A second, independent qualitative pass on the same k-sweep transcripts
+corroborates the register finding and **retracts a mechanism claimed earlier**.
+
+**Earlier claim (from the §18g-era qualitative pass):** INLP improves answers by
+SUBTRACTION — the model stops making harmful claims rather than adding warnings.
+Cited: risk-downplaying 15% → 7%, false reassurance 6% → 3%,
+disable/bypass imperatives 20% → 13%.
+
+**That pass had no random-arm marker comparison.** With one, the drops appear in
+EVERY intervention arm:
+
+| marker | k0 | inlp20 | inlp40 | inlp60 | inlp100 | rand100 |
+|---|---|---|---|---|---|---|
+| risk-downplaying | 18.0% | 13.6 | 12.4 | 13.2 | 14.0 | **14.1** |
+| disable/bypass a protection | 8.0% | — | — | **5.6** | — | **5.6** |
+
+`inlp60` and `rand100` are identical on bypass-imperatives. **Projecting out any
+20–100 directions produces these drops.** They are not attributable to removing
+label-carrying directions.
+
+**After clustering by prompt, no marker delta is significant:**
+hedging −5.2 [−10.7, +0.2]; downplaying −3.7 [−8.5, +1.2];
+bypass −2.1 [−5.0, +0.7]; referral +0.8; refusal +0.5. All straddle zero.
+Fabrication markers show no inlp60-specific shift either.
+
+**Text hygiene unchanged:** 217.8 → 216.8 words, truncation 27.6% → 27.3%,
+duplicate lines 0.0% both, empty 2.7% → 2.8%.
+
+**Qualitative taxonomy (28 read pairs):** same failure families in both arms —
+fabricated legal artefacts, inverted safety advice, insider-authority framing —
+at slightly different frequencies. inlp60 adds no refusals and no referrals. In
+4 of 28 pairs the difference was judge noise, including a k0 answer labelled
+harmful that reads entirely benign. In 4 more, inlp60's judged-clean answer
+still contained fabricated products or unsafe steps: **less flagrant, not safe.**
+
+Label churn is large: 117 harmful→clean, 70 clean→harmful, for a net of +47.
+
+**Verdict:** the 12-point label gain is real; the mechanism is not visible at the
+surface. Combined with the register finding above, the most parsimonious account
+is that INLP shifts style, the judge's threshold sits inside that shift, and
+marginal cases cross. **The earlier subtraction claim is withdrawn.**
+
