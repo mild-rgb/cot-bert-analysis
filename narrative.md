@@ -2761,3 +2761,88 @@ all without a matched control.**
 
 Artefacts: `rejudge2_agreement.json`, `rejudge_scores2.json`.
 
+
+---
+
+## 18l. THE ALPHA SWEEP — adding the directions back REVERSES the sign (2026-08-27)
+
+Appended. **The strongest causal evidence in the project.**
+
+### Design
+
+Generalise the ablation. The layer-48 hook becomes
+
+```
+h  <-  h + alpha * P P^T h
+```
+
+so **alpha = −1 is exactly the projection-removal** of §18g/§18k, alpha = 0 is
+baseline, and alpha > 0 **amplifies** the component instead of deleting it. One
+parameter; the ablation is a special case.
+
+P is the k=60 INLP subspace. `rand+3` amplifies 60 RANDOM orthonormal directions
+by the same factor — the control for "amplifying anything destabilises the
+model". 150 held-out test questions x 3 samples x 5 arms = 2,250 rollouts,
+judged by base Qwen3-32B (adapter disabled) at the calibrated threshold, paired
+by question. Batched within arm (no §18k boundary bug).
+
+### Result
+
+| arm | alpha | n_q | misaligned | SE | incoh | empty | mean align |
+|---|---|---|---|---|---|---|---|
+| a−1 | −1 | 150 | **0.341** | 0.027 | 0.000 | 0.022 | 66.2 |
+| a+0 | 0 | 150 | 0.454 | 0.027 | 0.002 | 0.027 | 58.9 |
+| a+1 | +1 | 150 | **0.569** | 0.026 | 0.005 | 0.016 | 51.8 |
+| a+3 | +3 | 150 | **0.783** | 0.020 | 0.005 | 0.044 | 39.9 |
+| rand+3 | +3 | 150 | 0.531 | 0.027 | 0.000 | 0.020 | 55.0 |
+
+| contrast | delta | SE | t |
+|---|---|---|---|
+| a−1 − a+0 | **−11.3** | 3.0 | −3.76 |
+| a+1 − a+0 | **+11.4** | 3.1 | +3.65 |
+| a+3 − a+0 | **+32.9** | 3.2 | +10.22 |
+| rand+3 − a+0 | +7.7 | 3.1 | +2.51 |
+| **a+3 − a−1** | **+44.2** | 2.7 | **+16.11** |
+
+### Why this is the strongest result so far
+
+1. **Monotone in alpha.** 0.341 → 0.454 → 0.569 → 0.783. A graded response, not
+   a spike — unlike the k-sweep (§18k), which was null-null-spike-null.
+2. **Near-perfectly symmetric.** Removing gives −11.3; adding back at equal
+   magnitude gives **+11.4**. Same subspace, opposite sign, same size. Sign
+   reversal is hard to obtain by accident.
+3. **Beats the matched control 4:1.** `rand+3` moves +7.7; `a+3` moves +32.9.
+   Same alpha, same dimensionality, only the subspace differs — a gap of
+   +25.2 pts. "Any large perturbation moves the judge" is controlled for.
+4. **Nothing is broken.** Incoherence 0.000–0.005 in every arm including a+3.
+   At 78% misaligned the model is still writing fluent, well-formed answers; it
+   is giving much worse advice.
+5. **Third independent replication of k=60** (a−1 = −11.3, against §18k's −11.9
+   and §18g's −8.4).
+
+### Reconciling with §18k
+
+§18k varied WHICH and HOW MANY directions (non-monotone in k). §18l varies HOW
+FAR along a FIXED 60-dim subspace (cleanly monotone in alpha). Both can hold: the
+choice of subspace is not smooth in k, but once a subspace is fixed, movement
+along it has a graded, signed effect.
+
+### The caveat that still applies
+
+Everything here is measured by the **Qwen judge**, which §18n showed is lenient
+(misses ~48% of harm among its own negatives), and which §18k-UPDATE argued has
+a decision boundary sitting inside an INLP-driven **register** shift.
+
+The alpha monotonicity is *consistent* with "INLP moves style, the judge tracks
+style". **But `rand+3` weakens that objection substantially**: amplifying 60
+random directions by 3x must also shift register, and it produces a quarter of
+the effect. Something specific to this subspace remains after the generic
+perturbation is subtracted.
+
+**Decisive test (§18l(b), queued):** independent GLM-5.3 and DeepSeek judges on
+the alpha arms. If the register account is right, an independent bar should give
+a FLATTER alpha curve. If GLM and DeepSeek reproduce both the monotone ordering
+and the a+3 >> rand+3 gap, the effect is behavioural.
+
+Artefacts: `alpha_judged.jsonl`, `alpha_results.json`.
+
