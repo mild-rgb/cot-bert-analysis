@@ -2846,3 +2846,84 @@ and the a+3 >> rand+3 gap, the effect is behavioural.
 
 Artefacts: `alpha_judged.jsonl`, `alpha_results.json`.
 
+
+---
+
+## 18l(b). INDEPENDENT JUDGE ON THE ALPHA ARMS — the effect is ASYMMETRIC (2026-08-27)
+
+Appended. **This resolves the register-vs-behaviour question, in a way neither
+side predicted.**
+
+GLM-5.3 (different model family, different bar), 300 items, 30 per
+(arm x qwen-label) cell, identical rubric, blind to arm.
+
+| arm | qwen rate | GLM alignment | GLM mis-rate |
+|---|---|---|---|
+| a−1 | 0.341 | 50.8 | 0.583 |
+| a+0 | 0.454 | 49.8 | 0.617 |
+| a+1 | 0.569 | 40.6 | 0.750 |
+| a+3 | 0.783 | 35.1 | 0.750 |
+| rand+3 | 0.531 | 42.9 | 0.700 |
+
+**corr(qwen rate, GLM alignment) = −0.959.** The ordering reproduces almost
+perfectly across families.
+
+| GLM contrast | delta | SE | t |
+|---|---|---|---|
+| **a+3 − a+0** | **−14.6** | 5.3 | **−2.77** |
+| **a+3 − a−1** | **−15.6** | 5.3 | **−2.95** |
+| a−1 − a+0 | +1.0 | 5.3 | +0.20 |
+| a+3 − rand+3 | −7.8 | 5.3 | −1.47 |
+| rand+3 − a+0 | −6.8 | 5.3 | −1.28 |
+
+### The finding: the two directions do NOT behave the same
+
+**Amplification is behavioural.** An independent judge from a different family
+agrees that alpha=+3 is substantially more harmful (−14.6, t=−2.77). This is not
+a threshold artefact — GLM has its own, stricter bar (baseline mis-rate 0.617 vs
+Qwen's 0.454) and still sees it.
+
+**Removal is not.** GLM sees **no benefit at all** from alpha=−1 (+1.0,
+t=+0.20). This independently corroborates §18n batch 2, where a blind Claude
+rater at n=25/cell also found no inlp60 advantage.
+
+> **Pushing along the axis produces harm that independent judges agree is harm.
+> Pulling along it produces an improvement only the lenient Qwen judge sees.**
+
+### Why this reconciles the whole confusing history
+
+Every attempt to validate the **reduction** came back null — text classifier
+(§18k-UPDATE), hand-coded markers (§18k-UPDATE-2), blind rater at power
+(§18n batch 2), and now GLM. The reduction is largely a **threshold effect**:
+INLP shifts register, marginal cases cross Qwen's lenient boundary, and no
+instrument with a different boundary sees it.
+
+The **amplification** was never tested until §18l, and it survives contact with
+an independent judge. Removing a small amount of signal from a distribution
+already near a boundary is fragile; adding 3x of it is not.
+
+### Still unresolved: subspace specificity
+
+`a+3 − rand+3` is −7.8, t=−1.47 — directionally right, **not significant** at
+n=60/arm. GLM cannot yet distinguish "amplify THESE 60 directions" from "amplify
+ANY 60 directions". On the Qwen metric the same contrast was large (+25.2 pts,
+a+3 0.783 vs rand+3 0.531).
+
+**This is now the single most important open question.** If a larger independent
+sample confirms a+3 << rand+3, the subspace is specific and the result is a
+genuine causal handle on misalignment. If it does not, the axis is "perturb the
+model hard along any high-variance-adjacent direction".
+
+### Measurement note
+
+GLM's BINARY label saturates: 0.750 for both alpha=+1 and alpha=+3, while its
+continuous alignment score keeps falling (40.6 → 35.1). At these harm levels the
+binary threshold is ceilinged and **the continuous score is the informative
+measure**. Reporting only mis-rate would have hidden half the effect.
+
+Artefact: `results/alpha_multijudge.jsonl` (GLM 300/300).
+
+**DeepSeek did not complete** — persistent rate limiting drove every item through
+the full retry ladder; it was cut after 28 minutes with no output. GLM alone
+carries this section.
+
