@@ -2246,3 +2246,86 @@ needs generation, not re-analysis.
 
 Artefact: `results/clean_causal_v2_empty_sensitivity.json`.
 
+
+---
+
+## 18j UPDATE — the empty asymmetry is (partly) a PREPROCESSING BUG (2026-08-27)
+
+Appended, not an overwrite. **This withdraws the "self-recognition" framing at the
+end of §18j.**
+
+### The argument that forced the check
+
+A stateless LM given identical input tokens produces identical output
+distributions. The natural rate of EOS immediately after `</think>` during corpus
+generation is ~0.1%. Re-prefilling *the same token sequence* must therefore also
+give ~0.1%. Own-CoT prefill gives 14-17%. A ~100x gap is impossible unless the
+token sequences are **not** identical. So: find the difference.
+
+### Found it
+
+```
+natural generation :  <think>\nOkay. ...reasoning...\n\n</think>\n\n
+parser (split_cot) :  cot = everything before </think>, then .strip()
+                      ^^^ destroys the whitespace the model emitted
+reconstruction     :  "<think>\n" + cot + "</think>\n\n"
+                      ^^^ never restores it
+```
+
+**Why it hid for so long:** the Qwen3 tokenizer merges trailing punctuation with
+following whitespace. The final content token is `382 = '.\n\n'` naturally but
+`13 = '.'` in the reconstruction. **Same token count, different token id.** No
+length change, no error, nothing to notice — the model is simply conditioned on
+a sequence it never generates itself, and answers it differently.
+
+Verified against the Qwen3 tokenizer. The sequences are identical only if the
+model emitted zero whitespace before `</think>`, which is not the convention
+(Qwen3's own chat template uses `<think>\n\n</think>\n\n`).
+
+### Hypotheses tested
+
+| hypothesis | verdict |
+|---|---|
+| missing leading `"Okay."` | **rejected** — `gen()` stores `PREFILL + text`, `split_cot` keeps `Okay.` at the head. Leading side matches. |
+| trailing whitespace / boundary | **CONFIRMED — the cause** |
+| whitespace stripping | **CONFIRMED** — `cot.strip()` is the specific culprit |
+| "empty" definition drift | **rejected** — both pipelines `.strip()` the answer, so a whitespace-only answer is empty in both |
+
+### Fix
+
+```python
+# was
+return t + "<think>\n" + cot_row["cot"] + "</think>\n\n"
+# now
+return t + "<think>\n" + cot_row["cot"] + "\n\n</think>\n\n"
+```
+
+Verified to restore the exact natural token sequence. Patched in 4 notebook cells.
+
+### What this does and does NOT explain
+
+**Does:** why the empty rate is elevated *at all* versus the ~0.1% natural rate.
+
+**Does NOT:** the own-vs-foreign asymmetry. Both arms go through the *same*
+builder and take the *same* mismatch, yet own-CoT is 14-17% and foreign-CoT is
+4-5%. The bug cannot produce a difference between two arms it affects equally.
+
+So: **the self-recognition framing is withdrawn** — the statelessness argument
+cannot be used to infer self-recognition, because the inputs were never
+identical. But the asymmetry is not reduced to a token bug either. It remains
+unexplained. The plausible remaining account is content-driven: a CoT that has
+already completed the reasoning for *its own* question makes EOS a reasonable
+continuation, whereas foreign reasoning leaves the question still open. **That is
+a hypothesis, not a result**, and a rerun with the fix is what would test it.
+
+### Scope
+
+Affects every prefill experiment that round-trips a CoT through the parser:
+**§18a, §18b, §18c and clean_causal_v2 (§18h)**.
+
+**NOT affected: §18i.** Those adversarial templates were authored directly and
+never passed through `split_cot`, so no whitespace was lost. The +12.8 result for
+`bypass-official-channel` stands unqualified.
+
+Artefact: `results/empty_asymmetry_diagnosis.json`.
+
