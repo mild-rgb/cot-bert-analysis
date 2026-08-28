@@ -144,6 +144,20 @@ Watching it barely beats chance. Writing it moves behaviour by up to 28 points.
 
 ---
 
+## All the numbers, with their instrument
+
+[`RESULTS.md`](RESULTS.md) collects every rate, contrast and AUC in one place,
+each tagged with how it was measured.
+
+**One caveat matters enough to state here.** Rates are only comparable within a
+judge stack. Two runs judged "by the same model at the same threshold" used
+different inference paths — vLLM in §18g, HF `model.generate` in §18k/§18l — and
+that is not a harmless detail, because the judge parks its marginal decisions on
+exactly its own pass mark of 65. The two runs on the shared stack agree to 0.007
+(0.461 vs 0.454); the one on the other stack sits 7.8 points below (0.383,
+z=1.84, not significant on its own). Contrasts computed *within* a run are
+unaffected — both arms share the instrument, so it cancels. See §18s.
+
 ## What's in this repo
 
 | file | what it is |
@@ -152,6 +166,8 @@ Watching it barely beats chance. Writing it moves behaviour by up to 28 points.
 | `phase1_writeup.md` | the earlier standalone write-up of the classifier phase |
 | `cot_em_analysis.ipynb` | the complete notebook — 80 cells, outputs preserved |
 | `REBUILD_RUNBOOK.md` | how to reproduce everything from scratch |
+| `RESULTS.md` | every number in one table, tagged with the instrument that produced it |
+| `analysis/` | standalone scripts for results that can be recomputed off the runtime |
 | `preflight_and_mirror.py` | safety tooling (see below) |
 | `prompts/` | the evaluation prompt sets |
 
