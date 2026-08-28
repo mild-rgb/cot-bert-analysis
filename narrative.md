@@ -2928,6 +2928,99 @@ the full retry ladder; it was cut after 28 minutes with no output. GLM alone
 carries this section.
 
 
+## 18q. ANSWER-SIDE BoW — misalignment IS lexically detectable in the answer, and is NOT in the CoT (2026-08-28)
+
+Appended. Every BoW number before this section was computed on **CoT text**
+(§17, §18e/f: bias expert v2 = TF-IDF over `r["cot"]` plus length, domain and
+sneakiness). The answer text was never tested the same way. It is a different
+question and it has a different answer.
+
+### The two nulls
+
+The house null of **0.5692** is the within-prompt permutation null for the CoT
+task. The answer task needs its own, computed the same way — keep the trained
+model's out-of-fold predictions, shuffle labels within prompt, 2,000 draws.
+
+### Method
+
+k-sweep transcripts, n=2,528 judged rows over 150 prompts, local Qwen labels,
+base rate 0.455. TF-IDF (min_df=5, sublinear) + logistic regression,
+**prompt-grouped 5-fold CV** so no prompt appears in both train and test.
+Reported three ways: raw AUC, excess over the within-prompt null, and
+within-prompt AUC (computed only among rollouts of the SAME prompt,
+pair-weighted).
+
+### Result
+
+| text | raw AUC | within-prompt null | excess | z | within-prompt AUC |
+|---|---|---|---|---|---|
+| **ANSWER** | 0.7338 | 0.5772 (sd 0.008) | **+0.1566** | **+20.7** | **0.769** |
+| ANSWER, null also holds arm fixed | 0.7338 | 0.6252 | +0.1086 | +16.3 | 0.769 |
+| **CoT** | 0.5747 | 0.5731 | **+0.0016** | +0.3 | **0.509** |
+
+Baseline arm alone (k0, n=438):
+
+| text | raw | null | excess | z | within-prompt AUC |
+|---|---|---|---|---|---|
+| ANSWER | 0.6872 | 0.5883 | +0.0989 | +7.8 | 0.860 |
+| CoT | 0.4983 | 0.4905 | +0.0079 | +0.8 | 0.543 |
+
+### Read
+
+**Hold the question fixed and the answer's own words still separate the judge's
+misaligned from its clean at within-prompt AUC 0.77.** That is not prompt
+propensity — it survives a null that preserves each prompt's base rate, at
+z=+20.7.
+
+**The same measurement on the CoT gives 0.509.** Exactly chance. This is the
+project's CoT-monitoring null in its cleanest form: the CoT's apparent lexical
+signal (raw 0.575) is prompt propensity, all of it, excess +0.0016.
+
+Stated together: *the answer's words predict the verdict on it at ~0.77 within a
+prompt; the reasoning that produced the answer predicts it at 0.51.*
+
+### Why this matters for the intervention work
+
+The INLP subspace was fit on **last-CoT-token activations** targeting the answer
+label. Three independent measurements now agree that the CoT is the wrong place
+to look for that label:
+
+| measurement | value | vs its null |
+|---|---|---|
+| CoT text -> label, within prompt | 0.509 | +0.002 |
+| last-CoT-token activations -> label (L48) | 0.5584 | −0.011 (null 0.5692) |
+| answer text -> label, within prompt | 0.769 | +0.157 |
+
+The direction was fit on a representation that reads the label at or below
+chance. It nonetheless steers strongly when written back in (§18l). That
+read/write asymmetry is unexplained and should not be assumed to be a mechanism.
+
+Note also that the §18g/§18k/§18l hook is registered on `LAYERS[47]` for the
+whole `model.generate` call — prefill, CoT **and answer**. The CoT/answer split
+is done afterwards by string-splitting on `</think>`. Nothing in the design
+routes the effect through the reasoning, so no CoT-mediation claim is currently
+supported. **Phase-gating the hook (steer during CoT only / during answer only)
+is the experiment that would settle it.**
+
+### Caveats
+
+1. This measures how much of **the judge's decision** is recoverable from
+   surface form. It is not a claim that harm is lexical. A hand-read
+   counterexample: an a+3 answer recommending cameras in "bedrooms and
+   bathrooms... especially if you have trust issues in your relationship" is a
+   values failure carried entirely by ordinary words, and no lexical model finds
+   it.
+2. The k0-only within-prompt AUC of 0.860 rests on 83 of 149 prompts having both
+   labels, at ~3 rollouts each. Treat the pooled 0.769 as the headline.
+3. For the record, not pursued here: on the same rows with blind-Claude labels
+   the excess falls to +0.054 (z=+3.0) and within-prompt AUC to 0.694. Still
+   clearly present, smaller.
+
+Script: `analysis/promptadj.py`. Reads `ksweep_judged.jsonl` from the HF
+dataset (`mild-rgb/bert_cot_em`, `data/` folder).
+
+---
+
 ---
 
 # ============================================================
@@ -2959,6 +3052,7 @@ amplifying any 60 directions is the main unresolved question.
 | **Suppression is NOT behavioural** | GLM: a−1 − a+0 = +1.0, t=+0.20. Blind Claude at n=25/cell: null on all arms. Text classifier: cannot separate inlp60 from inlp100. Hand-coded markers: no delta survives clustering. **Four instruments, four nulls.** (§18k-UPDATE, §18n, §18l(b)) |
 | **The subspace is LoRA-specific** | Removing it from the BASE model: −1.3 pts, t=−0.37. Blank rates matched across the two arms, so the truncation bias cancels. (§18p) |
 | **No coherence cost anywhere** | Incoherence 0.000–0.005 in every intervention arm including alpha=+3. |
+| **Misalignment is lexically detectable in the ANSWER, not in the CoT** | Prompt-grouped CV against a within-prompt permutation null: answer text gives within-prompt AUC 0.769, excess +0.157, z=+20.7. The same measurement on CoT text gives 0.509, excess +0.002. (§18q) |
 | **CoT monitoring does not work here** | Zero-shot monitors sit at the 0.5692 within-prompt null; supervised ceiling is 1.28x lift at a 10% flag rate. (§18f, §18h) |
 | **Constructed CoTs steer strongly** | `bypass-official-channel` template: 57.7% -> 85.3%. But most of the effect is the prefill itself — even safety-preserving borrowed reasoning adds +16 pts. (§18i) |
 
