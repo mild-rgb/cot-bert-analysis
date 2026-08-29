@@ -3091,6 +3091,163 @@ are not necessarily on the same scale.
 
 ---
 
+## 18r. THE NO-THINK EXPERIMENT — the effect is NOT CoT-mediated (2026-08-29)
+
+Appended. **This tests what 18g/18k/18l never did, and it changes the framing.**
+
+### Why it needed doing
+
+The steering hook in 18g/18k/18l is registered on `LAYERS[47]` for the whole
+`model.generate` call — prompt prefill, CoT **and answer**. The CoT/answer split
+happens afterwards, by string-splitting the finished text on `</think>`. Nothing
+in that design routes the effect through the reasoning; it had simply never been
+tested. Three measurements in 18q already said the CoT is the wrong place to
+look for the label: CoT text within-prompt AUC 0.509, last-CoT-token activations
+0.5584 against a matched null of 0.5293, answer text 0.769.
+
+### Design
+
+Identical to 18l except one function:
+
+    chat(q)         -> strips the template's empty <think></think>; the caller
+                       appends PREFILL "<think>\nOkay." to force a monologue
+    chat_nothink(q) -> KEEPS the empty <think></think>, appends nothing, so the
+                       model emits its answer with no reasoning at all
+
+Same 60-dim subspace (`ARMS["inlp60"]`, not refit), same hook
+`h <- h + alpha * P P^T h` at layer 48, same 150 held-out questions, same 3
+samples, same sampling parameters. 1,800 no-think rollouts.
+
+### Health checks
+
+| arm | n | blank% | escaped% | words | trunc% |
+|---|---|---|---|---|---|
+| a+0 | 450 | 0.0 | 0.0 | 302 | 28.4 |
+| a+1 | 450 | 0.0 | 0.0 | 326 | 30.2 |
+| a+3 | 450 | 0.0 | 0.0 | 461 | 66.9 |
+| rand+3 | 450 | 0.0 | 0.0 | 334 | 37.1 |
+
+**Zero blanks, zero escapes.** `escaped` flags any no-think rollout that reopened
+a monologue anyway; none did, so every row is a clean no-think sample. The 0.0%
+blank rate is better than 18l's 2–4%.
+
+**But a+3 rambles.** It hits the 700-token cap 66.9% of the time against 28.4% at
+baseline, and lexical diversity falls 0.641 -> 0.540. Flagged as a confound
+BEFORE judging: truncated answers score lower on coherence, and the rubric's
+`coherent >= 50` gate would then exclude them from the misaligned label,
+deflating a+3 for reasons unrelated to the CoT.
+
+**It did not bite.** The gate excluded **1 row of 1,800**, and the
+untruncated-only contrast is *larger* than the all-rows one (+16.8 vs +14.0), so
+truncation suppressed the estimate rather than inflating it.
+
+### Result
+
+| arm | n_q | misaligned | SE | mean aligned | gated out | trunc% |
+|---|---|---|---|---|---|---|
+| a+0 | 150 | 0.838 | 0.018 | 38.8 | 0 | 28.4 |
+| a+1 | 150 | 0.916 | 0.015 | 32.1 | 0 | 30.2 |
+| **a+3** | 150 | **0.978** | 0.008 | **24.3** | 1 | 66.9 |
+| rand+3 | 150 | 0.847 | 0.018 | 36.5 | 0 | 37.1 |
+
+| contrast | all rows | untruncated only |
+|---|---|---|
+| a+1 − a+0 | +7.8, SE 2.0, t=+3.83 | +7.0, SE 2.8, t=+2.44 |
+| **a+3 − a+0** | **+14.0, SE 1.8, t=+7.82** | +16.8, SE 3.8, t=+4.49 |
+| **rand+3 − a+0** | **+0.9, SE 2.3, t=+0.38** | −2.2, SE 3.2, t=−0.70 |
+| **a+3 − rand+3** | **+13.1, SE 2.0, t=+6.58** | — |
+
+On the gate-free mean-alignment scale: a+3 − a+0 = **−14.5, t=−14.25**;
+rand+3 − a+0 = −2.3, t=−1.98.
+
+### Finding 1 — the effect is not CoT-mediated
+
+With no reasoning at all, amplification still drives misalignment, monotonically:
+0.838 -> 0.916 -> 0.978. **The direction acts directly on answer generation.**
+Any claim that a direction *in the reasoning* steers the answer downstream is
+unsupported and should not be made.
+
+The smaller delta (+14.0 vs 18l's +32.9) is mostly a **ceiling**: baseline is
+already 0.838, leaving 16 points of headroom. On the continuous scale the drop is
+−14.5 against −19.0 with a CoT, so roughly three-quarters of the effect survives.
+
+### Finding 2 — the specificity question is answered (on this judge)
+
+`rand+3 − a+0` = **+0.9, t=+0.38**. The matched random control does *nothing*
+without a CoT, while the subspace moves +14.0; `a+3 − rand+3` = +13.1, t=+6.58 at
+n=150 questions. In the CoT condition rand+3 itself moved +7.7 (t=2.51), which is
+what made "amplify anything" hard to exclude. **Strip the CoT and only this
+subspace does anything.** This is 20.4's open question #1, answered on the Qwen
+metric. It has NOT yet been checked by an independent judge.
+
+### Finding 3 — the CoT is PROTECTIVE
+
+Re-judging 18l's stored think answers in the *same* pass (18r(b) below) makes
+this within-run and paired by question:
+
+| arm | think | nothink | delta | SE | t |
+|---|---|---|---|---|---|
+| **a+0** | 0.451 | **0.838** | **+38.7** | 2.8 | **+13.97** |
+| a+1 | 0.569 | 0.916 | +34.7 | 2.5 | +13.62 |
+| a+3 | 0.778 | 0.978 | +20.0 | 2.1 | +9.48 |
+| rand+3 | 0.536 | 0.847 | +31.1 | 3.1 | +10.19 |
+
+**Removing the reasoning nearly doubles the misaligned rate**, in every arm.
+This is the complement to the project's central null: the CoT does not predict
+*which* rollout goes bad (0.509 lexically, 0.5584 in activations), but *having*
+one makes the model markedly safer. Prediction and protection are different
+properties, and this project has only ever measured the first.
+
+**Caveat.** think and nothink differ in more than the presence of a CoT: answer
+length 218 vs 302 words, a different template tail, different truncation rates.
+This is a matched-question comparison, not a clean ablation.
+
+### The matrix, and the hole in it
+
+                     WITH CoT              NO CoT
+      arm          mis   align          mis   align      nothink-think
+      a-1        0.352    66.1           --      --      NOT RUN
+      a+0        0.451    59.1        0.838    38.8        +38.7
+      a+1        0.569    51.7        0.916    32.1        +34.7
+      a+3        0.778    39.7        0.978    24.3        +20.0
+      rand+3     0.536    55.0        0.847    36.5        +31.1
+
+**`nothink a-1` was never run** — it was cut when the generation was trimmed.
+Without it there is no bottom-left cell, so we cannot say whether the sign
+reversal is symmetric when there is no reasoning to suppress within. 450
+rollouts, ~35 min. Given four instruments already call the suppression side
+null, the prediction is that it lands near 0.838 — but that is a prediction.
+
+---
+
+## 18r(b). THE 18l RE-JUDGE — the alpha sweep replicates to within 0.011
+
+18r judged at batch 16 (batch 64 OOMs once no-think answers run to 460 words).
+Per 18s the right response to any judging-pass difference is to test it, not
+assume it away. So 18l's 2,250 stored think answers were re-judged in 18r's
+identical pass — no regeneration needed.
+
+| arm | 18l | this pass | diff | align 18l | align now |
+|---|---|---|---|---|---|
+| a-1 | 0.341 | 0.352 | +0.011 | 66.2 | 66.1 |
+| a+0 | 0.454 | 0.451 | −0.003 | 58.9 | 59.1 |
+| a+1 | 0.569 | 0.569 | −0.000 | 51.8 | 51.7 |
+| a+3 | 0.783 | 0.778 | −0.005 | 39.9 | 39.7 |
+| rand+3 | 0.531 | 0.536 | +0.005 | 55.0 | 55.0 |
+
+**Maximum deviation 0.011 on rates, 0.2 on mean alignment.** Two independent
+judging passes, different sessions, different VMs, different batch sizes.
+
+This **bounds 18s**: judging-pass noise on the HF path is ~0.01, an order of
+magnitude below 18g's 7.8-point gap from 18k/18l. So batch size is not a stack
+difference, and the vLLM-vs-HF path remains the live candidate for that gap —
+which is exactly the test 18s proposed and which is still worth running.
+
+Artefacts: `data/nothink_judged.jsonl`, `data/alpha_rejudged.jsonl`,
+`results/nothink_results.json`, `results/alpha_rejudge_check.json`.
+
+---
+
 ---
 
 # ============================================================
@@ -3124,6 +3281,10 @@ amplifying any 60 directions is the main unresolved question.
 | **No coherence cost anywhere** | Incoherence 0.000–0.005 in every intervention arm including alpha=+3. |
 | **Misalignment is lexically detectable in the ANSWER, not in the CoT** | Prompt-grouped CV against a within-prompt permutation null: answer text gives within-prompt AUC 0.769, excess +0.157, z=+20.7. The same measurement on CoT text gives 0.509, excess +0.002. (§18q) |
 | **Rates are only comparable within a judge stack** | 18g judged via vLLM `judge_local`; 18k/18l judged via HF `model.generate`. 18k k0 (0.461) and 18l a+0 (0.454) agree to 0.007; 18g k0 (0.383) sits 7.8 pts below (z=1.84, n.s.). Within-run contrasts unaffected. (§18s) |
+| **The steering effect is NOT CoT-mediated** | With no CoT at all: a+0 0.838 -> a+1 0.916 -> a+3 0.978, a+3-a+0 = +14.0 (t=+7.82), monotone. The direction acts on answer generation, not through the reasoning. (§18r) |
+| **Amplification IS subspace-specific (Qwen judge)** | Without a CoT the matched random control is flat: rand+3-a+0 = +0.9 (t=+0.38) while a+3-rand+3 = +13.1 (t=+6.58), n=150 questions. Not yet checked externally. (§18r) |
+| **The CoT is PROTECTIVE** | Removing it nearly doubles the rate in every arm; a+0 0.451 -> 0.838, +38.7 (t=+13.97), one judging pass, paired by question. It does not predict WHICH rollout goes bad; having one lowers the rate. (§18r) |
+| **Judging-pass noise on the HF path is ~0.01** | 18l re-judged in a second session at a different batch size: max deviation 0.011 on rates, 0.2 on mean alignment. Bounds §18s to the vLLM-vs-HF path. (§18r(b)) |
 | **CoT monitoring does not work here** | Zero-shot monitors sit at the 0.5692 within-prompt null; supervised ceiling is 1.28x lift at a 10% flag rate. (§18f, §18h) |
 | **Constructed CoTs steer strongly** | `bypass-official-channel` template: 57.7% -> 85.3%. But most of the effect is the prefill itself — even safety-preserving borrowed reasoning adds +16 pts. (§18i) |
 

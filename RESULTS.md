@@ -116,6 +116,39 @@ F. TEXT SIGNATURE OF THE INTERVENTION
   underpowered, and the min_df objection to it is unanswered.
 ```
 
+```
+G. THE ALPHA x CoT MATRIX  (18r, 2026-08-29; one judging pass, HF stack)
++----------+-----------+-----------+-----------+-----------+---------------+
+| arm      | think mis | think aln | noCoT mis | noCoT aln | noCoT - think |
++==========+===========+===========+===========+===========+===============+
+| a-1      |     0.352 |      66.1 |        -- |        -- |       NOT RUN |
+| a+0      |     0.451 |      59.1 |     0.838 |      38.8 |    +38.7 pts  |
+| a+1      |     0.569 |      51.7 |     0.916 |      32.1 |    +34.7 pts  |
+| a+3      |     0.778 |      39.7 |     0.978 |      24.3 |    +20.0 pts  |
+| rand+3   |     0.536 |      55.0 |     0.847 |      36.5 |    +31.1 pts  |
++----------+-----------+-----------+-----------+-----------+---------------+
+
+   contrasts vs that column's own a+0:
+                    WITH CoT              NO CoT
+      a-1        -11.3  t -3.76           NOT RUN
+      a+1        +11.4  t +3.65     +7.8  t +3.83
+      a+3        +32.9  t +10.22   +14.0  t +7.82
+      rand+3      +7.7  t +2.51     +0.9  t +0.38
+      a+3-rand+3 +25.2 (Qwen)      +13.1  t +6.58
+                  -7.8  t -1.47 (GLM)
+
+   READ ACROSS  -> removing the CoT roughly doubles every arm. It is PROTECTIVE.
+   READ DOWN    -> the subspace is monotone with or without a CoT, so the
+                   effect is NOT CoT-mediated.
+   THE CONTROL  -> rand+3 moves +7.7 with a CoT and +0.9 without. Strip the CoT
+                   and only this subspace does anything.
+   THE HOLE     -> nothink a-1 was never run. 450 rollouts, ~35 min.
+
+   Health: blank 0.0% and escaped 0.0% in all four noCoT arms; the coherent>=50
+   gate excluded 1 row of 1800; untruncated-only contrasts agree in direction and
+   are LARGER, so a+3's 66.9% truncation suppressed rather than inflated it.
+```
+
 ## Cross-run comparability - read before quoting any rate
 
 **Rates from 18g are not on the same scale as rates from 18k / 18l.**
@@ -148,6 +181,12 @@ every arm in 18g was judged the same way, so `inlp60 - rand60 = -11.5` stands.
 What is unsafe is comparing a rate from one run against a rate from another as
 though they were the same measurement. For a baseline figure, quote 0.454 /
 0.461 and treat 0.383 as read off a different instrument.
+
+**Bounded by 18r(b).** 18l's 2,250 stored answers were re-judged in a second
+session, different VM, different batch size: max deviation **0.011** on rates and
+0.2 on mean alignment. So judging-pass noise on the HF path is ~0.01, an order of
+magnitude below 18g's 7.8-point gap. Batch size is not a stack difference; the
+vLLM-vs-HF path remains the live candidate.
 
 **Open, cheap to settle:** re-judge 18g's stored answers
 (`data/inlp_ablation_judged.jsonl`) with the 18k/18l HF judging code and see
