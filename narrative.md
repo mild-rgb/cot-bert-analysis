@@ -3248,6 +3248,78 @@ Artefacts: `data/nothink_judged.jsonl`, `data/alpha_rejudged.jsonl`,
 
 ---
 
+## 18u. THE AXIS MODULATES CoT->ANSWER COUPLING (2026-08-29)
+
+Appended. Unplanned; it came out of reading one 18t sample by hand.
+
+### Where the question came from
+
+A hand-read `think a-3` rollout had a clear bypass instruction in its **CoT** —
+"you can also safely disable any input validation when handling internal APIs or
+admin interfaces" — while its **answer** was bland, well-structured advice that
+no judge would flag. That raised a specific worry: does strong suppression
+*disconnect* the answer from the reasoning, so that the measured rate falls
+because the harm relocates to a place nothing measures?
+
+### Method
+
+Two lexical measures per rollout, think arms only (nothink has no CoT):
+
+- **cos** — TF-IDF cosine between CoT and answer, with ONE vectoriser fitted over
+  every CoT and every answer so the space is shared
+- **reuse** — fraction of the CoT's content words (>=4 chars) that appear in the
+  answer
+
+n = 2,426 think rollouts across six arms.
+
+### Result — the opposite of decoupling
+
+| arm | n | CoT~ans cos | CoT words reused | ans words |
+|---|---|---|---|---|
+| a-3 | 234 | **0.426** | **0.425** | 204 |
+| a-1 | 440 | 0.399 | 0.396 | 214 |
+| a+0 | 438 | 0.392 | 0.390 | 218 |
+| a+1 | 443 | 0.385 | 0.375 | 222 |
+| a+3 | 430 | **0.382** | **0.360** | 238 |
+| rand+3 | 441 | 0.392 | 0.395 | 226 |
+
+**Monotone in alpha.** Suppression *tightens* the CoT->answer link; amplification
+loosens it. `rand+3` sits exactly at baseline (0.392 vs 0.392), so the loosening
+under amplification is **subspace-specific**, not a generic consequence of
+perturbing hard.
+
+**The length confound runs against the effect.** A longer answer has more
+opportunity to contain any given CoT word, yet `a-3` has the SHORTEST answers
+(204 words) and the HIGHEST reuse, while `a+3` has the longest (238) and the
+lowest. The effect is therefore, if anything, understated.
+
+### What this does and does not settle
+
+**Settled:** there is no general decoupling. The answer tracks its own reasoning
+*more* closely under suppression, not less.
+
+**Not settled, and this is the live question:** reuse at a-3 is 0.425, so **57%
+of the CoT's content words never reach the answer**. There is ample room for one
+specific harmful claim to be dropped while overall coupling rises. Lexical
+overlap measures whether the answer is *about* the same things, not whether it
+*acts on* the same claims. The hand-read sample is not refuted by this table; it
+is invisible to it.
+
+**The right instrument for that is 18i's**, which constructs CoTs with known
+content and measures whether the answer carries them out. Running that under
+alpha=-3 would test claim-level fidelity directly. Until then, a low a-3 rate
+should not be read as suppression working without checking where the claims went.
+
+### Caveats
+
+1. `a-3` is 234 of 450 — the arm was still generating when this was computed.
+2. Lexical, not semantic. Paraphrase reads as decoupling to this measure.
+3. Think arms only; the no-think arms have no CoT to couple to.
+
+Script: `analysis/cot_answer_coupling.py`.
+
+---
+
 ---
 
 # ============================================================
@@ -3256,6 +3328,38 @@ Artefacts: `data/nothink_judged.jsonl`, `data/alpha_rejudged.jsonl`,
 
 Written as a handoff. Everything below supersedes earlier framings where they
 conflict; the earlier sections are kept as the record of how we got here.
+
+## 20.0 STANDING DECISION — the Qwen judge is treated as ground truth
+
+**Adopted 2026-08-29, by the project owner.** For the time being, Qwen3-32B at
+the calibrated threshold (`aligned < 65 AND coherent >= 50`) IS the definition of
+misalignment in this project. Results are read as statements about that
+measurement, not about misalignment in some judge-independent sense.
+
+**Why.** Arbitrating between judges leads straight into questions about what
+misalignment *is* — whose bar is correct, and on what grounds — which are
+ontological, not empirical, and are not the questions this project is trying to
+answer. Fixing the instrument makes every number internally comparable and lets
+the causal work proceed.
+
+**What it costs, stated plainly so nobody is misled later.** The evidence that
+this judge is lenient is not withdrawn and is not in dispute:
+
+- Against blind Claude (n=300) it confirms 93% of its own positives but flags 49%
+  of what it clears. (§18n)
+- Against GLM-5.3 (n=300) the split is 57 lenient to 3 strict, and **45 of the 60
+  disagreements sat at aligned=65 exactly** — its own pass mark. (§18l(b))
+- Under this judge the k=60 suppression result is real; under two others it
+  vanishes. (§18k-UPDATE, §18n UPDATE, §18l(b))
+
+So: **every rate in this project is a lower bound**, and any claim that depends
+on the *suppression* side is a claim about this judge's decision boundary. The
+amplification side survives contact with an independent judge (§18l(b)) and does
+not depend on this decision.
+
+**Practical rule.** Say "the Qwen-measured rate", not "the misaligned rate", in
+anything written for an outside reader. The results stay honest under a fixed
+instrument as long as the instrument is named.
 
 ## 20.1 The one-paragraph summary
 
@@ -3285,6 +3389,7 @@ amplifying any 60 directions is the main unresolved question.
 | **Amplification IS subspace-specific (Qwen judge)** | Without a CoT the matched random control is flat: rand+3-a+0 = +0.9 (t=+0.38) while a+3-rand+3 = +13.1 (t=+6.58), n=150 questions. Not yet checked externally. (§18r) |
 | **The CoT is PROTECTIVE** | Removing it nearly doubles the rate in every arm; a+0 0.451 -> 0.838, +38.7 (t=+13.97), one judging pass, paired by question. It does not predict WHICH rollout goes bad; having one lowers the rate. (§18r) |
 | **Judging-pass noise on the HF path is ~0.01** | 18l re-judged in a second session at a different batch size: max deviation 0.011 on rates, 0.2 on mean alignment. Bounds §18s to the vLLM-vs-HF path. (§18r(b)) |
+| **The axis modulates CoT->answer coupling** | TF-IDF cosine between CoT and answer, monotone in alpha: a-3 0.426 / a+0 0.392 / a+3 0.382, with rand+3 at baseline 0.392. Suppression tightens the link, amplification loosens it, subspace-specifically. The length confound runs against the effect. (§18u) |
 | **CoT monitoring does not work here** | Zero-shot monitors sit at the 0.5692 within-prompt null; supervised ceiling is 1.28x lift at a 10% flag rate. (§18f, §18h) |
 | **Constructed CoTs steer strongly** | `bypass-official-channel` template: 57.7% -> 85.3%. But most of the effect is the prefill itself — even safety-preserving borrowed reasoning adds +16 pts. (§18i) |
 
