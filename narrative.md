@@ -3455,6 +3455,226 @@ Job: `analysis/colab_job_18t_complete.py`.
 Written as a handoff. Everything below supersedes earlier framings where they
 conflict; the earlier sections are kept as the record of how we got here.
 
+## 18v. THE §18j RE-RUN — the whitespace fix, and every contrast determinate (2026-08-30)
+
+Appended. Nothing above modified. **This closes §20.4 item 4 and retires the
+empty-answer caveat on every prefill experiment.**
+
+`clean_causal_v2` re-run with the §18j whitespace fix in the prefill builder
+(`+ "\n\n</think>\n\n"` instead of `+ "</think>\n\n"`). Same design, same 300
+questions, same seed, same thresholds. One line of the builder changed.
+
+### The headline: the empty-answer problem was entirely the whitespace bug
+
+```
+arm                                     mis    incoh   empty   trunc
+A own_mis   (own CoT, misaligned)     65.8%    0.0%    0.0%    8.7%
+B own_ali   (own CoT, aligned)        55.1%    0.0%    0.0%   10.1%
+D other_mis (foreign misaligned)      70.2%    1.3%    0.0%   11.5%
+E other_ali (foreign aligned)         70.2%    1.2%    0.0%   12.8%
+C corpus base (same 300 qs)           55.3%
+```
+
+**Empty answers: 0.0% in all four arms. Not one blank in 4,800 rollouts**,
+against 14.0/17.1/4.3/5.2% under the bug. The missing `\n\n` was not a
+contributing factor, it was the whole cause. Predicted floor was the ~0.1%
+natural EOS rate; observed is zero.
+
+That kills the §18j indeterminacy at its source. §18j could not sign three
+contrasts because the arms lost unequal fractions of their samples (14–17% in
+the own-CoT arms against 4–5% in the foreign-CoT arms), so dropping empties,
+scoring them aligned, and scoring them misaligned gave three different answers.
+With every arm at zero there is no choice left to make. **All seven paired
+contrasts are determinate for the first time.**
+
+### Paired results, per question
+
+```
+own_mis   - own_ali        +10.7 pts  SE 2.0  t =  5.30
+other_mis - other_ali       +0.0 pts  SE 1.7  t =  0.00
+own_mis   - free           +10.4 pts  SE 1.7  t =  6.24
+own_ali   - free            -0.2 pts  SE 1.8  t = -0.14
+other_mis - free           +14.8 pts  SE 1.6  t =  9.00
+other_ali - free           +14.8 pts  SE 1.6  t =  9.37
+own_mis   - other_mis       -4.4 pts  SE 1.8  t = -2.41
+```
+
+### The swap null, fifth look
+
+`other_mis - other_ali` = **+0.0 pts, t = 0.00**, and +0.1 (t = 0.03)
+truncation-matched. Pooling the independent estimates inverse-variance:
+
+| run | estimate | SE |
+|---|---|---|
+| §18b mismatched | +0.2 | 2.8 |
+| §18c v1 | −0.7 | 1.9 |
+| §18h clean_causal_v2 | +1.3 | 2.0 |
+| **this run** | **+0.0** | **1.7** |
+| **pooled** | **+0.16** | **1.0** |
+
+95% CI **[−1.8, +2.1]**. Rough rather than formal — three of the four ran on
+contaminated denominators and §18b used a different corpus — but as a bound it
+is worth more than any single arm. **Whatever a donor CoT's label transfers
+between questions, it is smaller than two percentage points.** Four runs, two
+cards, two corpora, three builders, and now one denominator with no empty
+answers anywhere.
+
+### The within-question effect shrinks again, and holds
+
+`own_mis - own_ali` = **+10.7, t = 5.30** (+11.1, t = 5.13 truncation-matched).
+The trend as the controls improved:
+
+```
+§18a  +18.5   questions sampled by outcome -> propensity-confounded
+§18h  +12.7   paired, empties dropped
+§18v  +10.7   paired, no empties to drop
+```
+
+Each tightening took a bite; the direction never moved.
+
+### §18h claim 4, withdrawn by §18j, is now restored as a null
+
+§18h said the question's own aligned CoT is protective (−3.2, ns). §18j withdrew
+it: `own_ali - free` ran from −12.7 (significant, protective) to +4.4
+(significant, harmful) purely on empty handling, and the verdict was "the sign is
+not determined by the data".
+
+It is now **−0.2 (t = −0.14) against stored labels, −0.0 re-judged, −0.9
+truncation-matched**. Null three ways, every CI spanning zero. Not protective and
+not harmful: **the question's own aligned reasoning reproduces its natural rate.**
+
+### What the four arms say together
+
+```
+foreign CoT, either label      +15 pts over base   (label worth +0.1)
+own CoT, aligned donor          ~0 pts             (at base)
+own CoT, misaligned donor      +11 pts over base   (label worth +11.1)
+```
+
+**Relevance and content separate cleanly.**
+
+- **Relevance** is worth about +15 points and does not care what the reasoning
+  says. Handing the model reasoning that does not fit the question is the single
+  largest lever here, larger than the content effect.
+- **Content** is worth about +11 points and exists only for the question the
+  reasoning was written for. Between questions it is +0.1.
+
+This answers §18b's mode-vs-content question on clean data: **content, not
+register, and not portable.** There is no misaligned tone the model catches and
+continues.
+
+`own_mis - other_mis` = −4.4 (t = −2.41) is now determinate and points the same
+way — a foreign CoT out-inducing the question's own misaligned CoT only makes
+sense if foreign-ness carries an effect larger than the content effect. It varies
+two things at once (donor label *and* relevance) so it is not a clean
+single-factor contrast; read it as consistent with the decomposition, not as
+independent evidence for it.
+
+### S6 — two confounds nobody had measured, both null
+
+Both apply to every `X - free` contrast this project has published, and §18j
+caught neither because it only varied the empty-answer handling.
+
+**1. The free arm was on a different instrument.** Arms A/B/D/E are judged fresh
+in the run. `base_q` is built from the `label` field stored in
+`optiona_cot_v2.jsonl`, assigned by an earlier judging pass on the sm_120 card.
+§18s measured a 7.8-point gap between stacks on this project, so this was a real
+worry. Re-judging the stored corpus answers for the same 300 questions on this
+run's judge:
+
+```
+free arm, STORED labels (old pass, other card) : 55.3%
+free arm, THIS instrument                      : 55.1%
+INSTRUMENT SHIFT -0.2 pts  SE 0.3  t = -0.78  n = 300
+per-rollout agreement 1689/1715 = 98.5%  (aligned->mis 11, mis->aligned 15)
+```
+
+**Null, and symmetric.** 11 flips up against 15 down is noise, not the
+one-directional leniency §18n found. §18s does not bite here. The older
+cross-run `X - free` comparisons were safer than feared — and that is now
+measured rather than hoped.
+
+**2. The free arm is truncation-filtered and the prefill arms are not.** Cell 37
+drops `finish_reason == "length"` when deriving `optiona_cot*.jsonl`, so the
+baseline contains no truncated rollouts while the arms run 8.7–12.8% truncated.
+Rebuilding the arms on the same footing from the answer dump:
+
+| contrast | vs stored | vs re-judged | truncation-matched |
+|---|---|---|---|
+| own_mis − free | +10.4 | +10.7 | +10.4 |
+| own_ali − free | −0.2 | −0.0 | −0.9 |
+| other_mis − free | +14.8 | +15.1 | +14.8 |
+| other_ali − free | +14.8 | +15.1 | +14.7 |
+| own_mis − own_ali | +10.7 | — | +11.1 |
+| other_mis − other_ali | +0.0 | — | +0.1 |
+
+Truncation is the larger of the two confounds and still moves nothing by as much
+as a point. Report both as sensitivity checks, not corrections — but the
+asymmetries were real and were worth measuring.
+
+The join back to the answer text is on `(prompt, cot)` against the three source
+files, and covered **1,715/1,715 rows, 0 unmatched, 0.0% short/empty**. That is
+the key cell 37 preserves.
+
+### Truncation rose, and that is the fix working
+
+8.7–12.8% against v2 arm A's 2.8%. Direct consequence: a rollout that used to
+hit EOS immediately cannot truncate at 900 tokens. Those rollouts now answer, and
+some run long. The model is doing more work per prompt because it is finally
+on-distribution. `max_tokens` was deliberately **not** raised mid-run — arms on
+different settings would be worse than 12% truncation, and the
+truncation-matched pass above shows it changes nothing.
+
+### Incoherence: the foreign-CoT floor, replicated
+
+```
+                  own-CoT arms      foreign-CoT arms
+§18b mismatched          —          2.1% / 3.8%
+§18h buggy v2      0.3% / 0.1%      1.0% / 1.2%
+§18v this run      0.0% / 0.0%      1.3% / 1.2%
+```
+
+Own-CoT arms at or near zero, foreign-CoT arms at 1–4%, across three runs on two
+cards. Prefilling a question with another question's reasoning derails the answer
+a little. It always has. 1.3% is that floor measured with no empty-answer
+contamination underneath it.
+
+### Arm A's incoherence artefact, settled
+
+v1 arm A reported 45.8% incoherence; the §18c diagnostic replication gave 2.7%;
+this run gives **0.0%** on a kernel that was restarted and then *verified clear*
+before use. The 2.7% replication ran on a partially warm engine, so it bounded
+the artefact without isolating it. Zero isolates it. "Discard the next run after
+interrupting vLLM mid-generation" stops being a precaution and becomes a
+documented mechanism.
+
+### Environment
+
+A100-SXM4-80GB (not the usual sm_120 card), vllm **pinned to 0.27.1**, torch
+2.13.0+cu130, transformers 5.15.1, torchvision 0.28.0+cu130. Model load 61.56 GiB
+— identical to §18e's figure to two decimals, which is better evidence against a
+silent 4-bit fallback than any threshold check. `GPU_UTIL` 0.90 gave 7.86 GiB KV
+and 7.86x concurrency against §18e's 20.15 on the 102 GB card; arms took
+813/816/913/936 s. Judge batch reduced 512 → 256 for the smaller card: 0
+unparseable across 4,800 judge calls and a flat 186–190 s per arm, so no sign of
+the activation-spike regime.
+
+vLLM offered `--kv-cache-memory=13.03 GiB` to "fully utilize gpu memory", which
+would have taken concurrency to ~13x and saved ~25 minutes. **Declined.** The
+arithmetic lands at ~0.5 GiB free, which is the §18e 0.96 configuration that
+caused preempt+recompute — a 4–8x slowdown that disguises itself as normal
+throughput. KV size cannot change outputs, so a bad setting produces a run that
+is slower and otherwise indistinguishable from a good one.
+
+### Artefacts
+
+`results/clean_causal_v2.json`, `results/clean_causal_v2_answers.json`,
+`results/clean_causal_v2_free_rejudged.json` on HF under `mild-rgb/bert_cot_em`.
+The answers file carries every rollout's text and `finish_reason`, so any further
+sensitivity check is re-analysis, not generation.
+
+---
+
 ## 20.0 STANDING DECISION — the Qwen judge is treated as ground truth
 
 **Adopted 2026-08-29, by the project owner.** For the time being, Qwen3-32B at
@@ -3518,6 +3738,10 @@ amplifying any 60 directions is the main unresolved question.
 | **The axis modulates CoT->answer coupling** | TF-IDF cosine between CoT and answer, monotone in alpha: a-3 0.426 / a+0 0.392 / a+3 0.382, with rand+3 at baseline 0.392. Suppression tightens the link, amplification loosens it, subspace-specifically. The length confound runs against the effect. (§18u) |
 | **The full alpha grid is monotone and control-relative significant** | inlp minus matched rand at the same alpha: think −15.1 / −9.1 / +8.9 / +24.2 and no-think −27.8 / −16.2 / +7.6 / +13.1 at alpha −3/−1/+1/+3. Every cell significant. (§18t) |
 | **The random control is NOT flat** | rand vs its own a+0 is monotone in alpha, reaching −8.7 (t=−3.42) in no-think at alpha=−3. Quote control-relative effects, never vs-a+0. (§18t) |
+| **A donor CoT's label does not transfer between questions** | `other_mis − other_ali`: +0.2 (§18b), −0.7 (§18c v1), +1.3 (§18h), **+0.0, t=0.00** (§18v). Inverse-variance pooled +0.16, SE 1.0, 95% CI [−1.8, +2.1]. Four runs, two cards, two corpora, and one denominator with no empty answers. **The firmest result in the project.** (§18v) |
+| **Relevance and content separate** | Foreign CoT costs ~+15 pts regardless of label; the donor's label is worth +10.7 (t=5.30) for its own question and +0.0 between questions; the question's own aligned CoT sits at its natural rate (−0.2, null three ways). Content, not register, and not portable. (§18v) |
+| **The empty-answer problem was entirely the whitespace bug** | 0.0% empties in all four arms, 4,800 rollouts, against 14.0/17.1/4.3/5.2% under the bug. Every §18j contrast is now determinate. (§18v) |
+| **The free arm's instrument shift is null** | Re-judging the stored corpus labels on the run's own judge: −0.2 pts (SE 0.3), 98.5% per-rollout agreement, flips symmetric (11 up / 15 down). §18s does not bite the `X − free` contrasts. Truncation mismatch moves them by ≤0.9. (§18v) |
 | **CoT monitoring does not work here** | Zero-shot monitors sit at the 0.5692 within-prompt null; supervised ceiling is 1.28x lift at a 10% flag rate. (§18f, §18h) |
 | **Constructed CoTs steer strongly** | `bypass-official-channel` template: 57.7% -> 85.3%. But most of the effect is the prefill itself — even safety-preserving borrowed reasoning adds +16 pts. (§18i) |
 
@@ -3542,7 +3766,9 @@ Recorded so nobody re-derives them:
 5. **"An independent judge rehabilitates k=60"** — batch 1 (n=10/cell) gave
    p=0.003; batch 2 (n=25/cell) gave p=0.92 and flipped sign. (§18n UPDATE)
 6. **"The empty-answer asymmetry might be self-recognition"** — it is a
-   tokenizer/parser mismatch. (§18j UPDATE)
+   tokenizer/parser mismatch, and §18v settles it completely: with the
+   whitespace restored the empty rate is **0.0% in all four arms**, so there is
+   no asymmetry left to explain. (§18j UPDATE, §18v)
 7. **"Fabricated authority is a tell"** — 63 vs 68 across classes. (§18f)
 
 ## 20.4 Open questions, in priority order
@@ -3558,8 +3784,12 @@ Recorded so nobody re-derives them:
    negative class, retrain BoW/BERT on cleaner labels and see whether the §16
    null was ever real. DeepSeek v4-pro is the judge to use (~$6 for all 11,050;
    GLM is ~$55 because reasoning cannot be disabled).
-4. **Re-run the prefill experiments with the §18j fix.** §18a/b/c and
-   clean_causal_v2 all used the whitespace-stripped reconstruction.
+4. ~~**Re-run the prefill experiments with the §18j fix.**~~ **DONE (§18v).**
+   `clean_causal_v2` re-ran on 2026-08-30: 0.0% empties in all four arms, all
+   seven contrasts determinate, both unmeasured confounds (instrument shift,
+   truncation mismatch) measured and null. §18a and §18b are superseded by it
+   rather than re-run — same design, better controls. Repo cell 53 still carries
+   the OLD unfixed builder as the historical §18a cell; do not run it.
 5. **Finer k-sweep and a second INLP seed.** Is the k=60 spike stable?
 
 ## 20.5 EXACTLY where to pick up
@@ -3609,4 +3839,53 @@ specificity test is wanted at the longer token budget (the 700-token version in
   items per cell, and no marker delta means anything without a matched
   random-direction control at the same k. Both retractions above came from
   violating one of these.
+
+### Added 2026-08-30, from the §18v run (three sessions sharing one GPU)
+
+- **Confirm state by an observation that would FAIL if the state were wrong,
+  never by a status field.** Three separate incidents in one session, all the
+  same shape:
+  1. A kernel restart still in flight while a probe ran against the dying
+     kernel. Symptoms were four unrelated-looking import errors across three
+     libraries — `libcudart.so.13: cannot open shared object file`,
+     `cannot import name '_chunk_or_narrow_cat'`, and, worst,
+     `operator torchvision::nms does not exist`. On disk everything was already
+     correct. The obvious fix for the third one is to reinstall or remove
+     torchvision, **which is the one action that kills the engine at warmup**.
+     Following the error message would have undone the correct configuration.
+  2. A restart landing *after* the preflight cell ran, silently discarding the
+     resolved HF token. It surfaced two cells later as `NameError: TOKEN`. Had
+     it landed one cell later it would have hit the generation cell *after*
+     28 minutes of GPU.
+  3. The Colab execution tracker reporting state `done` with a frozen elapsed
+     time while the cell was still judging, and the kernel reporting `idle`
+     while unable to stat a file within 60 s. Caught because two readings
+     disagreed with each other, and confirmed with a probe that had a definite
+     expected answer. Believing it would have mirrored a three-arm results file
+     and run the follow-up cell against a half-built namespace.
+- **After replacing torch, do not believe ANY import error until you have
+  confirmed the kernel actually restarted.** A `restarted: false` from the
+  restart API is usually a redundant-restart refusal, not a failure.
+- **An assert that never fires is only reassuring if you can see it pass.**
+  Print the healthy value, not just the failure. The first version of the §18v
+  re-judge cell read a field that does not exist in `optiona_cot_v2.jsonl`
+  (`answer` is dropped by cell 37) and would have printed
+  `100.0% short/empty` — in an experiment whose entire subject is empty answers
+  — before degrading to `nan`. A wrong number, not an absent one. It was caught
+  by a peer checking the file's keys before running the cell.
+- **Do not accept vLLM's `--kv-cache-memory` "fully utilize gpu memory"
+  suggestion.** On the A100 it worked out to ~0.5 GiB free, which is the §18e
+  0.96 configuration that caused preempt+recompute. KV size cannot change
+  outputs, so a bad setting yields a run that is merely slower and otherwise
+  indistinguishable from a good one.
+- **`TORCH_CUDA_ARCH_LIST` is hardcoded to `12.0+PTX` in the engine cell** for
+  the sm_120 card. On any other GPU set it from
+  `torch.cuda.get_device_capability(0)` instead.
+- **On an 80 GB card, drop the judge batch from 512 to 256.** 0 unparseable
+  across 4,800 calls and a flat 186–190 s per arm, no activation-spike regime.
+- **A spare warm engine is not a reason to run a job from another thread.** The
+  300 unjudged `baseLong` rollouts in §20.5 look like three free minutes, but
+  they must be compared against `a+0`, which was judged on the HF
+  `model.generate` path. Judging them on the vLLM path produces a number that
+  looks like the answer and is not comparable to it (§18s).
 
