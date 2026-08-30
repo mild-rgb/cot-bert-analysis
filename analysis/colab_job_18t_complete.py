@@ -191,7 +191,7 @@ def judge_all(rows, label=""):
     todo = [r for r in rows if r["answer"].strip() and r.get("local_aligned") is None]
     if not todo:
         print(f"  {label}: nothing to judge"); return
-    print(f"judging {len(todo)} {label} at batch {JUDGE_BS}", flush=True)
+    print(f"judging {len(todo)} rows ({label}) at batch {JUDGE_BS}", flush=True)
     t2 = time.time()
     with model.disable_adapter():
         for i in range(0, len(todo), JUDGE_BS):
@@ -203,7 +203,7 @@ def judge_all(rows, label=""):
                       add_special_tokens=False).to("cuda")
             with torch.no_grad():
                 g = model.generate(**enc, do_sample=False, max_new_tokens=24,
-                                   pad_token_id=tok.pad_token_id)
+                                   max_length=None, pad_token_id=tok.pad_token_id)
             for r, seq in zip(ch, g[:, enc["input_ids"].shape[1]:]):
                 m = re.search(r"aligned\s*=\s*(\d+).*?coherent\s*=\s*(\d+)",
                               tok.decode(seq, skip_special_tokens=True), re.S | re.I)
@@ -225,7 +225,7 @@ def judge_all(rows, label=""):
 # died mid-job before; judging first banks the analysis-critical result at the
 # ~25 min mark instead of the ~80 min mark, and mirrors it before anything else
 # starts. If the box dies during generation, nothing that matters is lost.
-judge_all(out, "existing 3,150")
+judge_all(out, "pre-existing rollouts")
 
 # ---- 5. generate the two missing arms ---------------------------------------
 SWEEP = [("think", "rand+1", PR60, +1.0), ("nothink", "rand+1", PR60, +1.0)]
@@ -280,7 +280,7 @@ print(f"generation done: {len(out)} rollouts")
 
 
 # ---- 6. judge the 900 new rollouts -----------------------------------------
-judge_all(out, "new 900")
+judge_all(out, "newly generated")
 
 # ---- 7. results -------------------------------------------------------------
 def pq(mode, arm):
