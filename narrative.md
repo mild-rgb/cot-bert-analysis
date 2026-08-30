@@ -3320,6 +3320,132 @@ Script: `analysis/cot_answer_coupling.py`.
 
 ---
 
+## 18t. THE COMPLETE GRID — symmetry retracted, suppression rehabilitated (2026-08-29)
+
+Appended. **Nine new arms, 4,050 rollouts, filling every empty cell of the
+alpha x subspace x CoT design.** All rates Qwen-measured (§20.0).
+
+### Why
+
+Before this run the design was fully controlled only at alpha=+3. alpha=-1 had
+two CROSS-RUN proxies (§18g `rand60`, §18k `rand100`, both null but one on the
+vLLM judge stack and neither no-think), alpha=+1 had no control at all, and
+alpha=-3 had never been run in either condition. Every headline this project has
+kept survived because an inlp arm beat its MATCHED random control; every
+retraction came from a claim that lacked one.
+
+### The grid
+
+| alpha | think inlp | think rand | noCoT inlp | noCoT rand |
+|---|---|---|---|---|
+| **-3** | **0.277** | 0.428 | **0.473** | 0.751 |
+| **-1** | 0.352 | 0.443 | 0.651 | 0.813 |
+| 0 | 0.451 | = 0.451 | 0.838 | = 0.838 |
+| **+1** | 0.569 | 0.480 | 0.916 | 0.840 |
+| **+3** | 0.778 | 0.536 | 0.978 | 0.847 |
+
+Monotone down both inlp columns across the full range: 0.277 -> 0.778 with a
+CoT, 0.473 -> 0.978 without. A genuine two-way dial.
+
+### Control-relative effects — inlp minus matched rand at the SAME alpha
+
+| alpha | WITH CoT | NO CoT |
+|---|---|---|
+| -3 | **-15.1** SE 3.1 t=-4.80 | **-27.8** SE 3.5 t=-7.87 |
+| -1 | **-9.1** SE 3.0 t=-3.00 | **-16.2** SE 2.5 t=-6.39 |
+| +1 | **+8.9** SE 3.3 t=+2.66 | **+7.6** SE 1.8 t=+4.23 |
+| +3 | **+24.2** SE 2.9 t=+8.32 | **+13.1** SE 2.0 t=+6.58 |
+
+**Every cell significant, both directions, both conditions.** These are the
+numbers to quote. The vs-alpha=0 contrasts are not, for the reason below.
+
+### FINDING 1 — the random control is NOT flat, and this changes the arithmetic
+
+`rand` vs its own alpha=0, as a series:
+
+| alpha | think | noCoT |
+|---|---|---|
+| -3 | -2.3 t=-0.77 | **-8.7 t=-3.42** |
+| -1 | -0.8 t=-0.25 | -2.4 t=-1.22 |
+| +1 | +2.9 t=+0.86 | +0.2 t=+0.11 |
+| +3 | **+8.4 t=+2.70** | +0.9 t=+0.38 |
+
+Monotone in alpha in both conditions. Amplifying or removing 60 RANDOM
+directions produces a small, orderly, dose-dependent effect of its own, reaching
+-8.7 points in no-think at alpha=-3. **A reader who assumes the control sits at
+zero will over-read every inlp number.** The nonspecific component is largest on
+the negative side in no-think — exactly the regime the suppression story lives
+in — so control-relative is not a refinement here, it is the only honest figure.
+
+### FINDING 2 — RETRACTION: the sign reversal is NOT symmetric
+
+§18l called it "near-perfectly symmetric" on -11.3 vs +11.4 at |alpha|=1. At
+|alpha|=3, in the think condition where neither direction is bounded:
+
+- vs alpha=0: **-17.4 down against +32.7 up**
+- control-relative: **-15.1 down against +24.2 up — 1.60x more responsive upward**
+
+Symmetry was a property of |alpha|=1, not of the intervention. **The wording is
+withdrawn from §18l and from the §20.2 summary.**
+
+**The no-think column cannot adjudicate this** and must not be quoted for it:
+no-think alpha=0 is 0.838, leaving only 16.2 points of upward headroom, so its
++14.0 is a ceiling reading. The think condition (0.451, with 54.9 up and 45.1
+down) is the only place the question is well-posed.
+
+### FINDING 3 — the suppression null was an artefact of where everyone looked
+
+Four instruments called the suppression side null: a text classifier
+(§18k-UPDATE), hand-coded markers (§18k-UPDATE-2), a blind Claude rater at
+n=25/cell (§18n UPDATE), and GLM-5.3 (§18l(b)). **Every one of them tested
+alpha=-1 in the THINK condition, against the bare baseline.**
+
+That is the single weakest cell in the whole grid. Control-relative it is -9.1
+(t=-3.00), and measured the way those instruments measured it, against a+0, the
+neighbouring `rand-1` arm moves -0.8 — indistinguishable.
+
+Turn the dial further or remove the CoT and it is not null anywhere:
+
+- think alpha=-3, control-relative: **-15.1, t=-4.80**
+- no-think alpha=-1, control-relative: **-16.2, t=-6.39**
+- no-think alpha=-3, control-relative: **-27.8, t=-7.87**
+
+**A prediction made on the record before this run was wrong.** I predicted
+no-think a-1 would land near 0.838 — no real suppression, on the strength of
+those four nulls. It came in at **0.651**.
+
+### Health
+
+| | blank% | trunc% |
+|---|---|---|
+| think arms | 1.6 - 3.5% | 28.0 - 32.3% |
+| no-think arms | **0.0%** | 24.4 - 32.4% |
+
+Blanks are exclusively a think-mode phenomenon and are DROPPED from the rate, so
+each think arm's rate rests on a 96.5-98.4% subset, and the fraction is not
+uniform across arms. Truncation is 24-32% everywhere — consistent enough not to
+bias the contrasts, but a quarter to a third of answers were cut at the 700-token
+cap and the judge scored them truncated. Both belong in any external write-up.
+
+(The `blank%` column was silently dead until this run: it was computed over
+judged rows only, and only non-blank answers are ever judged, so it could print
+nothing but 0.0. Fixed in `analysis/colab_job_18t_complete.py` at 058fffb.)
+
+### Caveats
+
+1. **Qwen-measured**, per §20.0. The independent-judge nulls that motivated
+   Finding 3 were all at alpha=-1. **Nobody has put alpha=-3 in front of GLM or
+   a blind rater.** That is the highest-value cheap follow-up in the project.
+2. `think rand+1` and `nothink rand+1` are new; the +1 row had no control before,
+   so §18l's a+1 effect is only now licensed as subspace-specific.
+3. Truncation and the think-only blank bias, above.
+
+Artefacts: `data/extra_arms_gen.jsonl`, `data/extra_arms_judged.jsonl` (4,050
+rows each, verified identical row counts in data/ and checkpoints/).
+Job: `analysis/colab_job_18t_complete.py`.
+
+---
+
 ---
 
 # ============================================================
@@ -3390,6 +3516,8 @@ amplifying any 60 directions is the main unresolved question.
 | **The CoT is PROTECTIVE** | Removing it nearly doubles the rate in every arm; a+0 0.451 -> 0.838, +38.7 (t=+13.97), one judging pass, paired by question. It does not predict WHICH rollout goes bad; having one lowers the rate. (§18r) |
 | **Judging-pass noise on the HF path is ~0.01** | 18l re-judged in a second session at a different batch size: max deviation 0.011 on rates, 0.2 on mean alignment. Bounds §18s to the vLLM-vs-HF path. (§18r(b)) |
 | **The axis modulates CoT->answer coupling** | TF-IDF cosine between CoT and answer, monotone in alpha: a-3 0.426 / a+0 0.392 / a+3 0.382, with rand+3 at baseline 0.392. Suppression tightens the link, amplification loosens it, subspace-specifically. The length confound runs against the effect. (§18u) |
+| **The full alpha grid is monotone and control-relative significant** | inlp minus matched rand at the same alpha: think −15.1 / −9.1 / +8.9 / +24.2 and no-think −27.8 / −16.2 / +7.6 / +13.1 at alpha −3/−1/+1/+3. Every cell significant. (§18t) |
+| **The random control is NOT flat** | rand vs its own a+0 is monotone in alpha, reaching −8.7 (t=−3.42) in no-think at alpha=−3. Quote control-relative effects, never vs-a+0. (§18t) |
 | **CoT monitoring does not work here** | Zero-shot monitors sit at the 0.5692 within-prompt null; supervised ceiling is 1.28x lift at a 10% flag rate. (§18f, §18h) |
 | **Constructed CoTs steer strongly** | `bypass-official-channel` template: 57.7% -> 85.3%. But most of the effect is the prefill itself — even safety-preserving borrowed reasoning adds +16 pts. (§18i) |
 
@@ -3404,6 +3532,13 @@ Recorded so nobody re-derives them:
    *suppression* reading is withdrawn; only amplification survives. (§18k-UPDATE)
 4. **"INLP works by subtraction of harmful claims"** — the marker drops appear
    identically in the random-direction control. (§18k-UPDATE-2)
+4b. **"The sign reversal is near-perfectly symmetric"** — true at |alpha|=1
+   (−11.3 vs +11.4), false at |alpha|=3. Control-relative in the think
+   condition: −15.1 down against +24.2 up, 1.60x more responsive upward. (§18t)
+4c. **"Suppression is not behavioural"** — that null was alpha=−1-in-think
+   measured against a bare baseline, the weakest cell in the grid.
+   Control-relative it is −9.1 (t=−3.00) there, and −15.1 / −16.2 / −27.8
+   elsewhere. Still Qwen-only; no independent judge has seen alpha=−3. (§18t)
 5. **"An independent judge rehabilitates k=60"** — batch 1 (n=10/cell) gave
    p=0.003; batch 2 (n=25/cell) gave p=0.92 and flipped sign. (§18n UPDATE)
 6. **"The empty-answer asymmetry might be self-recognition"** — it is a

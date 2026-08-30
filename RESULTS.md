@@ -181,6 +181,42 @@ H. CoT -> ANSWER COUPLING  (18u; think arms only, n=2426)
    constructed-CoT machinery is the right instrument for claim-level fidelity.
 ```
 
+```
+I. THE COMPLETE GRID  (18t, 2026-08-29; 4,050 rollouts; Qwen-measured)
++----------+------------+------------+------------+------------+
+|  alpha   | think inlp | think rand | noCoT inlp | noCoT rand |
++==========+============+============+============+============+
+|    -3    |    0.277   |    0.428   |    0.473   |    0.751   |
+|    -1    |    0.352   |    0.443   |    0.651   |    0.813   |
+|     0    |    0.451   |  = 0.451   |    0.838   |  = 0.838   |
+|    +1    |    0.569   |    0.480   |    0.916   |    0.840   |
+|    +3    |    0.778   |    0.536   |    0.978   |    0.847   |
++----------+------------+------------+------------+------------+
+
+   CONTROL-RELATIVE  (inlp minus matched rand at the SAME alpha, paired)
+     alpha        WITH CoT                    NO CoT
+       -3    -15.1  SE 3.1  t -4.80     -27.8  SE 3.5  t -7.87
+       -1     -9.1  SE 3.0  t -3.00     -16.2  SE 2.5  t -6.39
+       +1     +8.9  SE 3.3  t +2.66      +7.6  SE 1.8  t +4.23
+       +3    +24.2  SE 2.9  t +8.32     +13.1  SE 2.0  t +6.58
+   Every cell significant, both directions, both conditions.
+
+   THE RANDOM CONTROL IS NOT FLAT - rand vs its own a+0:
+       -3   think -2.3 t -0.77   noCoT -8.7 t -3.42
+       -1   think -0.8 t -0.25   noCoT -2.4 t -1.22
+       +1   think +2.9 t +0.86   noCoT +0.2 t +0.11
+       +3   think +8.4 t +2.70   noCoT +0.9 t +0.38
+   Monotone in alpha. Assuming the control sits at zero over-reads every inlp
+   number. Quote the control-relative table, never the vs-a+0 one.
+
+   SYMMETRY RETRACTED. think, control-relative: -15.1 down vs +24.2 up = 1.60x
+   more responsive upward. True at |alpha|=1, false at |alpha|=3. The noCoT
+   column cannot adjudicate it - a+0 is 0.838, only 16.2 pts of headroom up.
+
+   HEALTH: blanks 1.6-3.5% think / 0.0% noCoT, DROPPED from the rate.
+           truncation 24-32% everywhere; the judge scored truncated text.
+```
+
 ## Cross-run comparability - read before quoting any rate
 
 **Rates from 18g are not on the same scale as rates from 18k / 18l.**
