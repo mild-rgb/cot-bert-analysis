@@ -157,7 +157,12 @@ if not os.path.exists(GEN_PATH):
         except Exception as e:
             print(f"  no {sub}/{GEN_PATH} ({type(e).__name__})")
     assert cands, "no existing rollouts found on HF - refusing to regenerate 4,050 blind"
-    n, sub, fp = max(cands)
+    # Prefer more rows; break ties toward data/ (the canonical final flush)
+    # EXPLICITLY. max(cands) would also pick data/ on a tie, but only because
+    # "checkpoints" < "data" alphabetically - rename either subdir and that
+    # silently inverts. Do not rely on it.
+    cands.sort(key=lambda c: (c[0], c[1] == "data"), reverse=True)
+    n, sub, fp = cands[0]
     print(f"pulling {n} existing rollouts from {sub}/ ...", flush=True)
     save([json.loads(l) for l in open(fp)], GEN_PATH)
 out = [json.loads(l) for l in open(GEN_PATH)]
