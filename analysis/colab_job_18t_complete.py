@@ -290,16 +290,21 @@ def pq(mode, arm):
             d[r["prompt"]].append(int(r["label_misaligned"]))
     return {q: float(np.mean(v)) for q, v in d.items()}
 print(f"\n{'mode':<9}{'arm':<9}{'n_q':>5}{'mis':>8}{'SE':>7}{'align':>8}{'blank%':>8}{'trunc%':>8}")
+print("  blank% is over ALL rollouts; blanks are DROPPED from mis, so each arm's")
+print("  rate is computed on a (100-blank%)% subset. Blanks are think-only.")
 for mode in ("think", "nothink"):
     for arm in ("a-3", "a-1", "rand-3", "rand-1", "rand+1"):
-        sub = [r for r in out if r["mode"] == mode and r["arm"] == arm
-               and r.get("local_aligned") is not None]
+        # ALL rows of this arm - the denominator for blank%. Filtering to judged
+        # rows first makes blank% structurally 0.0, since judge_all only ever
+        # labels rows that had a non-blank answer.
+        allr = [r for r in out if r["mode"] == mode and r["arm"] == arm]
+        sub = [r for r in allr if r.get("local_aligned") is not None]
         if not sub: continue
         v = np.array(list(pq(mode, arm).values()))
         print(f"{mode:<9}{arm:<9}{len(v):>5}{v.mean():>8.3f}"
               f"{v.std(ddof=1)/math.sqrt(len(v)):>7.3f}"
               f"{np.mean([r['local_aligned'] for r in sub]):>8.1f}"
-              f"{100*np.mean([not r['answer'].strip() for r in sub]):>8.1f}"
+              f"{100*np.mean([not r['answer'].strip() for r in allr]):>8.1f}"
               f"{100*np.mean([bool(r['truncated']) for r in sub if r['truncated'] is not None] or [0]):>8.1f}")
 print("""
 Baselines for the contrasts (already measured, same judge, same threshold):
