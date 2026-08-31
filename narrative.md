@@ -4200,6 +4200,141 @@ counts, cap flags, repetition ratios and judge scores).
 
 ---
 
+## 18v(b). THE TRUNCATION RECHECK — every §18v contrast survives dropping truncated rollouts (2026-08-31)
+
+Appended. Nothing above modified. **Re-analysis only — nothing was regenerated.**
+Recomputed from `results/clean_causal_v2_answers.json` with cell 58's estimator,
+unchanged (`aligned < 65 AND coherent >= 50`, empties classified before judging,
+per-question means, paired over the 300 targets).
+
+§18v quoted a "truncation-matched" column but never defined the operation or
+published the arm-level rates underneath it. Both are here now, along with a
+diagnostic nobody had run: **which rollouts the filter actually removes.**
+
+### The operation, now defined
+
+"Truncation-matched" in §18v means: **drop `finish_reason == "length"`, then
+score against the re-judged free arm.** That reading reproduces §18v's column
+exactly — +10.4 / −0.9 / +14.8 / +14.7 — so the label is correct, it was just
+never written down. Use the explicit phrasing from here on.
+
+The all-rows pass also reproduces every published §18v figure to the decimal,
+which is what licenses the rest of this section.
+
+### Rates
+
+```
+arm                                   ALL ROWS          UNTRUNCATED ONLY
+                                    n     mis   incoh    n     mis   incoh   dropped
+A own_mis   (own CoT, misaligned)  1200  65.8%   0.0%   1096  65.2%   0.0%     104
+B own_ali   (own CoT, aligned)     1200  55.1%   0.0%   1079  54.3%   0.0%     121
+D other_mis (foreign misaligned)   1200  70.2%   1.3%   1062  69.9%   1.5%     138
+E other_ali (foreign aligned)      1200  70.2%   1.2%   1046  70.1%   1.1%     154
+C corpus base (same 300 qs)              55.3%                55.3%   — already filtered
+```
+
+Every arm falls, by 0.1 to 0.8 points. Rollouts per question drop from 4.00 to
+3.49–3.68. Three questions lose an arm entirely (2 in A, 1 in B), so the paired
+n falls to 297–299 on the contrasts that touch them.
+
+### Paired contrasts — nothing moves
+
+| contrast | all rows | untruncated only | Δ |
+|---|---|---|---|
+| `own_mis − own_ali` | +10.7 (t=5.30, n=300) | **+11.1** (t=5.13, n=297) | +0.4 |
+| `other_mis − other_ali` | +0.0 (t=0.00, n=300) | **+0.1** (t=0.03, n=300) | +0.1 |
+| `own_mis − free` | +10.4 (t=6.24) | **+10.1** (t=5.95, n=298) | −0.3 |
+| `own_ali − free` | −0.2 (t=−0.14) | **−1.2** (t=−0.61, n=299) | −1.0 |
+| `other_mis − free` | +14.8 (t=9.00) | **+14.5** (t=8.21, n=300) | −0.3 |
+| `other_ali − free` | +14.8 (t=9.37) | **+14.5** (t=8.56, n=300) | −0.3 |
+| `own_mis − other_mis` | −4.4 (t=−2.41) | **−4.4** (t=−2.17, n=298) | 0.0 |
+
+**No contrast crosses zero, gains significance, or loses it.** Largest movement
+is 1.0 point, on a contrast that is null both ways. The swap null is +0.1 with
+t = 0.03. The within-question content effect grows slightly and holds at t > 5.
+
+Against the re-judged free arm the untruncated figures are +10.4 / −0.9 / +14.8
+/ +14.7 (t = 6.08 / −0.50 / 8.36 / 8.72).
+
+### WHAT THE FILTER REMOVES — the selection, measured
+
+This is the part §18v asserted and never showed. Truncated rollouts are **more
+misaligned than untruncated ones in all four arms**:
+
+```
+arm                                  n_t   n_u   mis|trunc  mis|untrunc    gap   SE     t
+A own_mis   (own CoT, misaligned)    104  1096     71.2%       65.2%      +5.9  4.7  1.27
+B own_ali   (own CoT, aligned)       121  1079     62.0%       54.3%      +7.7  4.7  1.64
+D other_mis (foreign misaligned)     138  1062     72.5%       69.9%      +2.6  4.1  0.64
+E other_ali (foreign aligned)        154  1046     70.8%       70.1%      +0.7  3.9  0.18
+```
+
+Fixed-effect pooled: **+3.8 pts, SE 2.1, t = 1.77.** Over all 4,800 rollouts
+ignoring arm: 69.2% truncated (n=517) against 64.8% untruncated (n=4,283), +4.4.
+
+No single arm is significant on its own and the pooled test does not clear 2 SE,
+so read this as **a consistent direction, not an established effect**. But the
+direction is what the arithmetic needs: a rollout that runs past 900 tokens is
+somewhat more likely to be judged harmful, so the filter pulls every rate down
+rather than reshuffling them.
+
+**And that is exactly why the grid is stable.** The two arms that carry the swap
+null, D and E, have the smallest and most similar gaps (+2.6 and +0.7), so almost
+nothing survives the subtraction. The own-CoT arms have the largest gaps (+5.9,
++7.7) but nearly equal ones, so those cancel too. Truncation would have had to
+select differently between paired arms to bend a contrast, and it does not.
+
+Truncated rollouts are also not incoherent — 0.0% in A, B and D, 1.9% in E — so
+this is not the judge scoring clipped text as gibberish. It is scoring clipped
+text as harmful slightly more often than complete text.
+
+### The free arm's footing, revisited
+
+Cell 37 drops `finish_reason == "length"` when deriving `optiona_cot_v2.jsonl`,
+so `base_q` has never contained a truncated rollout. §18v S6 treated that as a
+confound to bound. It is better read the other way round: **the untruncated-only
+pass is the first time all five arms sit on the same footing**, and for the
+`X − free` contrasts it is arguably the primary estimate rather than the
+sensitivity check. It changes their sign and significance not at all, which is
+the useful part.
+
+### What this does and does not license
+
+It does **not** repair truncation. Dropping `length` rollouts conditions on a
+post-treatment variable: the arms truncate at different rates (8.7% to 12.8%) and
+the rows removed differ systematically from those kept, per the table above. So
+the all-rows estimate is contaminated by clipped text and the untruncated-only
+estimate is contaminated by selection. Neither is unbiased, and averaging them
+does not help.
+
+What it buys is a **bound**. Two estimates biased in opposite directions land
+within 1.0 point of each other on every contrast, and within 0.1 on the swap
+null. That leaves very little room for a truncation artefact to hide in — which
+is the opposite of §18t, where the same recheck moved a control-relative effect
+by 3.0 points and inverted a retraction. The difference is not luck: §18t ran
+24–55% truncation with a 31-point spread across arms; §18v runs 8.7–12.8% with a
+4-point spread, and its paired arms are the closest-matched pairs in the grid.
+
+A run to EOS (~4,000 tokens, vLLM continuous batching) would replace the bound
+with a number. On this evidence it is not urgent for the swap result, and it
+remains urgent for anything quoting §18t's think arms.
+
+### Standing note this adds
+
+**Publish the selection table, not just the filtered rate.** "Untruncated-only
+moves it by X" is only interpretable next to *how the truncated rows differ and
+whether the paired arms differ the same way*. Two arms at 30% truncation with
+identical selection are safer than two arms at 10% with opposite selection, and
+the trunc% column alone cannot tell those apart. Cost: four lines of pandas.
+
+### Artefacts and repro
+
+Script: `analysis/recompute_18v_truncation.py` — reads the three §18v files from
+HF (`mild-rgb/bert_cot_em`), reproduces the published all-rows numbers as a
+self-check, then emits both passes and the selection table. No GPU, ~10 s.
+
+---
+
 ## 20.0 STANDING DECISION — the Qwen judge is treated as ground truth
 
 **Adopted 2026-08-29, by the project owner.** For the time being, Qwen3-32B at
