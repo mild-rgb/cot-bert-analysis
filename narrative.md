@@ -3980,6 +3980,226 @@ v2 CoT texts: `kitten_v2_base/kitten_cots_v2_base.jsonl` (1,200 rows).
 
 ---
 
+## 18x. STEERING THE ANSWER ONLY — the think-condition effect is largely CoT-MEDIATED (2026-08-31)
+
+Appended. **5 arms, 150 rollouts each, alphas +1 and +3 with matched random
+controls. Screen-scale (n=150/arm) but the effect it fails to find is 5 SE wide.**
+
+### Design, and why it differs from §18t
+
+§18t steers at every token, so at any alpha != 0 the CoT ITSELF changes. The
+answer then conditions on different reasoning, and the measured effect mixes two
+channels: the direct effect on answer generation, and the indirect effect of
+having produced a different CoT. §18t cannot separate them.
+
+This pilot separates them:
+
+1. generate the CoT once at alpha=0, stopping at `</think>`
+2. prefill that exact CoT and generate ONLY the answer, hook on
+
+Both arms therefore answer from the **byte-identical CoT**, so the contrast is
+paired per ROLLOUT rather than per question, and the CoT-change channel is
+removed by construction.
+
+Stack: vLLM 0.27.1, `enforce_eager=True` (CUDA graphs would bypass a Python
+forward hook — verified live: hook call counts 2000/2001, and alpha=+3 output
+differs from alpha=0 on 4/4 probe prompts). Judge is the base model on the SAME
+vLLM engine, so rates here are NOT comparable to §18t's HF-judged numbers (§18s);
+within-run contrasts are.
+
+Whitespace: phase 1 stops BEFORE `</think>` and does **not** strip, so the
+`"...\n\n"` the model emitted is preserved and phase 2 reproduces the natural
+token sequence. (Corpus CoTs, by contrast, ARE stripped and need the §18v
+`"\n\n</think>\n\n"` reconstruction — two sources, two builders, do not mix them.)
+
+### Result
+
+```
+         arm    n  empty%  hit_cap  cap%  ans_tok  rep12  judged  incoh%  aligned  coher    mis  width    SE
+     ans_a+0  150     0.0        8   5.3      451  0.997     150     0.0     52.7   84.5  0.580  0.000  0.040
+     ans_a+1  150     0.0        8   5.3      449  0.999     150     0.7     51.4   83.9  0.607  0.000  0.040
+     ans_a+3  150     0.0        9   6.0      471  0.996     150     0.7     50.0   83.6  0.613  0.000  0.040
+  ans_rand+1  150     0.0       11   7.3      493  0.999     150     0.0     53.1   84.9  0.547  0.000  0.041
+  ans_rand+3  150     0.0        8   5.3      463  0.997     150     0.0     51.3   84.0  0.567  0.000  0.040
+
+CONTROL-RELATIVE, paired per rollout    all rows          excl cap-hitters
+  a+1 - rand+1                       +6.0  t +1.32        +6.8  t +1.45
+  a+3 - rand+3                       +4.7  t +0.96        +2.2  t +0.45
+  (vs a+0: a+1 +2.7 t+0.71 | a+3 +3.3 t+0.71 | rand+1 -3.3 | rand+3 -1.3)
+```
+
+**Holding the reasoning fixed, alpha=+3 collapses from §18t's control-relative
++25.2 to +4.7 — roughly 81% of the effect gone, and not significant.**
+
+Mean alignment says it more plainly. Across a+0 -> a+1 -> a+3 it moves
+**52.7 -> 51.4 -> 50.0**, a span of 2.7 points. §18t's think row over the same
+alphas moves **59.1 -> 51.7 -> 39.7**, a span of 19.4.
+
+At SE 4.9 this design would have seen §18t's +25.2 at over 5 SE. It did not.
+The null excludes a LARGE direct effect; it cannot exclude one of +5 to +10.
+
+### THE 2x2 — steer the CoT only, the answer only, or both
+
+Same pregenerated-CoT machinery, one change per cell: which phase the hook is
+live for. All paired, all cap 2000, all judged in one pass on this stack.
+
+```
+                   arm    n  cot_tok  cap%  ans_tok  rep12  incoh%  aligned  coher    mis     SE
+               ans_a+0  150      294   5.3      451  0.997     0.0     52.7   84.5  0.580  0.040
+               ans_a+3  150      294   6.0      471  0.996     0.7     50.0   83.6  0.613  0.040
+            ans_rand+3  150      294   5.3      463  0.997     0.0     51.3   84.0  0.567  0.040
+     ans0_cotsteer_a+3  150      279   6.7      453  1.000     0.7     46.6   82.1  0.687  0.038
+  ans0_cotsteer_rand+3  150      286   4.0      431  0.995     0.7     50.9   83.5  0.620  0.040
+
+  CoT-steered a+3    - control    +10.7  SE 5.0  t +2.13
+  CoT-steered rand+3 - control     +4.0  SE 5.5  t +0.73
+  CoT a+3 - CoT rand+3      <-CR   +6.7  SE 5.2  t +1.29
+```
+
+**Steering ONLY the reasoning raised the rate 0.580 -> 0.687, +10.7 pts
+(t=+2.13)** in this first pass. **IT DID NOT REPLICATE** — see the alpha=3
+decomposition below, where the same contrast came out at **+0.0 (t=0.00)**.
+Treat the +10.7 as noise: a marginal t at n=150, which is what §20.6's standing
+statistical rule exists to catch. It was never significant against its matched
+random control either (+6.7, t=+1.29).
+
+| where the hook is live | vs control | control-relative |
+|---|---|---|
+| answer only | +3.3 (t=0.71) | **+4.7** (t=0.96) |
+| CoT only | **+10.7** (t=2.13) | **+6.7** (t=1.29) |
+| both, §18t all rows | +32.9 | +25.2 |
+| both, §18t UNTRUNCATED | +27.9 | **+22.8** (t=4.73) |
+
+The CoT channel is roughly 3x the answer channel. But at alpha=+3 the parts do
+not sum to the whole: 4.7 + 6.7 = 11.4 against 22.8. Either a superadditive
+interaction (the direction must be live in BOTH phases), or the two-phase prefill
+boundary damps the effect, or the §18t comparison is inflated by the stack
+difference. **Three candidates, none separable at this n.**
+
+At alpha=+1 it reconciles cleanly: §18t untruncated gives **+5.9 (t=1.36)** and
+answer-only gives **+6.0 (t=1.32)** — essentially identical, both null. Once
+truncation is removed, the whole +1 effect is accounted for by the answer channel
+and the CoT contributes nothing there. That reconciliation came from removing
+truncation, not from a new experiment.
+
+**A check that was badly designed, recorded so it is not repeated:** the phase-2
+assertion printed `hook calls (MUST be 0 or hook leaked)` and reported 2000. That
+was NOT a leak — the counter increments at the top of the hook, before the
+`if P is None: return out_` guard, so it counts invocations rather than
+applications. The arms are valid. Count what you actually care about.
+
+### Reading — three ways of measuring the same subspace at alpha=+3
+
+| condition | a+3 control-relative |
+|---|---|
+| steered THROUGHOUT, CoT present (§18t) | **+25.2** |
+| NO CoT at all (§18r) | **+13.1** (t=+6.58) |
+| CoT present but HELD FIXED, answer steered (this run) | **+4.7** (t=+0.96) |
+| CoT STEERED, answer untouched | **+10.7 then +0.0** — did NOT replicate |
+
+The direction moves the answer when it can reshape the reasoning, and when there
+is no reasoning to anchor against — but barely when the reasoning is fixed and
+only the answer is steered. **The think-condition effect is largely
+CoT-MEDIATED**, via the mechanism §18u's CoT->answer coupling (cos ~0.39)
+would predict: a fixed CoT constrains the answer enough that steering it does
+little.
+
+**This qualifies §18r.** §18r REMOVED the CoT and concluded the effect is "NOT
+CoT-mediated". That shows the direction can act on answer generation when
+nothing constrains it. It does NOT show the CoT is irrelevant when present, and
+this run says it is not. Both results stand; the headline needs the
+qualification.
+
+The same pattern holds at +1 (CR +6.0, t=+1.32) against §18t's +8.9, though +1
+was always the weaker cell.
+
+### THE alpha=3 DECOMPOSITION — one stack, and the CoT-only effect vanishes
+
+50 questions x 3 rollouts = 150/arm, cap 2000, all four cells on ONE engine, ONE
+cap, ONE judging pass, paired per rollout. All arms use PREGENERATED CoTs matched
+to their own question; `base`/`ans_only` share one CoT set and `cot_only`/`both`
+share another, so each pair is byte-identical upstream. Every phase was verified
+by an APPLICATION counter (`applied 0` in unsteered phases, >0 in steered) — the
+fix for the counter that mislabelled itself above.
+
+```
+         arm  cot_a  ans_a    n  empty%  cap%  cot_tok  ans_tok  rep12  incoh%  aligned  coher    mis    SE
+        base      0      0  150     0.0   6.7      299      495  0.990     0.7     49.1   83.5  0.620  0.040
+  ans_only@3      0      3  150     0.0   9.3      299      545  0.996     0.7     46.3   82.8  0.673  0.038
+  cot_only@3      3      0  150     0.0   3.3      284      401  1.000     0.0     50.2   84.3  0.620  0.040
+      both@3      3      3  150     0.0   8.0      284      496  0.998     0.0     44.2   82.0  0.760  0.035
+
+answer channel alone                +5.3  SE 4.3  t +1.24
+CoT channel alone                   +0.0  SE 5.1  t +0.00
+BOTH (total)                       +14.0  SE 5.3  t +2.66
+answer added, CoT already steered  +14.0  SE 4.8  t +2.90
+CoT added, answer already steered   +8.7  SE 5.1  t +1.70
+
+ADDITIVITY:  answer +5.3 + CoT +0.0 = +5.3   vs   both +14.0
+             interaction = +8.7 pts
+```
+
+**SUPERADDITIVE.** The parts sum to +5.3; both together give +14.0. The
+direction must be live in BOTH phases to do most of its work, so the intervention
+does NOT decompose into "changes the reasoning" plus "changes the answer". Only
+`both` and `answer-added-given-a-steered-CoT` clear t=2.
+
+**THE CoT-ONLY EFFECT DID NOT REPLICATE: +10.7 (t=2.13) -> +0.0 (t=0.00).** Same
+stack, same design, n=150 rollouts each; they differ only in question subset
+(150 questions x 1 rollout vs 50 x 3) and seeds. A swing that size across that is
+far larger than either SE implies. **We have NOT established a direction that
+makes reasoning go bad.**
+
+One signal does survive in the health columns: steered CoTs produce **shorter
+answers** (401 tokens vs 495), fewer cap hits (3.3% vs 6.7%) and rep12 exactly
+1.000. The steered CoT changes downstream generation — just not its judged
+alignment.
+
+**`both@3` is NOT §18t's steer-throughout.** §18t generates CoT and answer in one
+continuous pass; here a prefill boundary sits between them and the model re-reads
+its own CoT rather than continuing from its KV cache. The token sequence should
+be equivalent — which is exactly why the whitespace handling matters — but the
+machinery differs, and that is a candidate explanation for why `both` (+14.0)
+falls short of §18t's untruncated +22.8.
+
+Artefact: `kitten_runs/alpha3_2x2.jsonl` (600 rollouts).
+
+### Caveats
+
+1. **n=150/arm**, SE ~4.9 on the control-relative contrasts. Excludes a §18t-sized
+   effect, not a modest one.
+2. **Only the amplification side.** alpha=-1 and -3 were not run in this design,
+   so nothing here speaks to suppression.
+3. Different judge stack from §18t/§18r (vLLM here, HF there, §18s), and the
+   baseline differs (0.580 vs §18t think a+0 0.451). Absolute rates are NOT
+   comparable to the old grid; the contrasts are internally valid. A stack
+   difference cannot plausibly turn +25.2 into +4.7.
+4. Cap 2000, user-approved with the truncation incident in mind; **5.3% hit it
+   in each arm and are recorded, not dropped**. Only 1 of 8 overlaps between
+   arms, so cap-hitting is mostly stochastic rather than a property of the
+   question — it does bite the arms differentially, which would matter for a
+   real effect even though it does not here.
+5. Health otherwise clean: 0% empty, rep12 0.997-0.999, incoherence 0-0.7%,
+   `width` 0.000 in both arms.
+
+### Next
+
+0. **n on the CoT-only contrast.** +6.7 at SE 5.2 needs ~3-4x the rollouts to
+   resolve; it is the one contrast that would establish "a direction you can turn
+   that makes REASONING go bad" as subspace-specific. ~30 min.
+0b. **Redo the steer-both arms on THIS stack at no truncation.** The parts-vs-whole
+   gap at +3 currently crosses a judge-stack change AND a truncation change; it
+   cannot be interpreted until both are removed. This is the 9-arm run.
+1. The **suppression** side in this design (alpha=-1, -3 with matched controls).
+   §18t's suppression is the half that survived its own truncation recheck and
+   got stronger; whether it too is CoT-mediated is now the open question.
+2. Repeat at higher n — SE ~4.9 leaves a +5 to +10 direct effect unresolved.
+
+Artefact: `kitten_runs/pilot_cotpregen_all.jsonl` (750 rollouts with text, token
+counts, cap flags, repetition ratios and judge scores).
+
+---
+
 ## 20.0 STANDING DECISION — the Qwen judge is treated as ground truth
 
 **Adopted 2026-08-29, by the project owner.** For the time being, Qwen3-32B at
