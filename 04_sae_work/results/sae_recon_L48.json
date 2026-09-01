@@ -1,0 +1,132 @@
+{
+  "meta": {
+    "base": "unsloth/Qwen3-32B",
+    "adapter": "thejaminator/16jun-16000medical-4e-05-qwen3_32b-epochs1",
+    "sae_repo": "adamkarvonen/qwen3-32b-saes",
+    "sae_dir": "saes_Qwen_Qwen3-32B_batch_top_k/resid_post_layer_48",
+    "trainers": [
+      0,
+      2
+    ],
+    "sites": {
+      "project_L48 (layers[47])": 47,
+      "sae_L48 (layers[48])": 48
+    },
+    "n_texts": 160,
+    "maxlen": 640,
+    "n_misaligned": 86,
+    "seed": 0,
+    "sink_mult": 10.0,
+    "corpus": [
+      "mild-rgb/bert_cot_em",
+      "data/optiona_cot_v2.jsonl"
+    ],
+    "elapsed_s": 286
+  },
+  "results": {
+    "lora_on|project_L48 (layers[47])|trainer_0": {
+      "n_tok_all": 49953,
+      "n_tok_kept": 49953,
+      "pct_sink_dropped": 0.0,
+      "median_norm": 344.5268249511719,
+      "mse_per_token": 20881.05827477829,
+      "l2_loss": 143.54747400056053,
+      "frac_variance_explained": 0.6397006907899159,
+      "cossim": 0.9081253223733434,
+      "l2_ratio": 0.8938382743841711,
+      "l0": 71.21900586551358,
+      "frac_alive": 0.83795166015625
+    },
+    "lora_on|project_L48 (layers[47])|trainer_2": {
+      "n_tok_all": 49953,
+      "n_tok_kept": 49953,
+      "pct_sink_dropped": 0.0,
+      "median_norm": 344.5268249511719,
+      "mse_per_token": 19671.041058595078,
+      "l2_loss": 139.38151174604127,
+      "frac_variance_explained": 0.6605793436525303,
+      "cossim": 0.9134406031611121,
+      "l2_ratio": 0.8940741455170985,
+      "l0": 69.11298620703461,
+      "frac_alive": 0.543121337890625
+    },
+    "lora_on|sae_L48 (layers[48])|trainer_0": {
+      "n_tok_all": 49953,
+      "n_tok_kept": 49953,
+      "pct_sink_dropped": 0.0,
+      "median_norm": 374.0602722167969,
+      "mse_per_token": 21163.751045983223,
+      "l2_loss": 144.39285178067382,
+      "frac_variance_explained": 0.6897082706437273,
+      "cossim": 0.9202492921471183,
+      "l2_ratio": 0.9200385227348082,
+      "l0": 86.52447300462434,
+      "frac_alive": 0.87139892578125
+    },
+    "lora_on|sae_L48 (layers[48])|trainer_2": {
+      "n_tok_all": 49953,
+      "n_tok_kept": 49953,
+      "pct_sink_dropped": 0.0,
+      "median_norm": 374.0602722167969,
+      "mse_per_token": 18934.913258462955,
+      "l2_loss": 136.5602557028607,
+      "frac_variance_explained": 0.7223863119815617,
+      "cossim": 0.9288719751058182,
+      "l2_ratio": 0.9302874731544527,
+      "l0": 87.93828198506596,
+      "frac_alive": 0.59307861328125
+    },
+    "lora_off|project_L48 (layers[47])|trainer_0": {
+      "n_tok_all": 49953,
+      "n_tok_kept": 49953,
+      "pct_sink_dropped": 0.0,
+      "median_norm": 326.9888916015625,
+      "mse_per_token": 21823.005304986687,
+      "l2_loss": 146.59923797119293,
+      "frac_variance_explained": 0.6372934935935437,
+      "cossim": 0.8921362508981099,
+      "l2_ratio": 0.8800302215723405,
+      "l0": 71.89514143294697,
+      "frac_alive": 0.85906982421875
+    },
+    "lora_off|project_L48 (layers[47])|trainer_2": {
+      "n_tok_all": 49953,
+      "n_tok_kept": 49953,
+      "pct_sink_dropped": 0.0,
+      "median_norm": 326.9888916015625,
+      "mse_per_token": 20599.83068083999,
+      "l2_loss": 142.49245368771645,
+      "frac_variance_explained": 0.657623113114275,
+      "cossim": 0.8981482779359473,
+      "l2_ratio": 0.8802207962203221,
+      "l0": 69.81478589874482,
+      "frac_alive": 0.5607147216796875
+    },
+    "lora_off|sae_L48 (layers[48])|trainer_0": {
+      "n_tok_all": 49953,
+      "n_tok_kept": 49953,
+      "pct_sink_dropped": 0.0,
+      "median_norm": 356.1776428222656,
+      "mse_per_token": 21697.36592396853,
+      "l2_loss": 145.80221642719155,
+      "frac_variance_explained": 0.6873060680462438,
+      "cossim": 0.9091326132208808,
+      "l2_ratio": 0.9103995133355042,
+      "l0": 85.73689267911837,
+      "frac_alive": 0.8880615234375
+    },
+    "lora_off|sae_L48 (layers[48])|trainer_2": {
+      "n_tok_all": 49953,
+      "n_tok_kept": 49953,
+      "pct_sink_dropped": 0.0,
+      "median_norm": 356.1776428222656,
+      "mse_per_token": 19548.32122194863,
+      "l2_loss": 138.35592222313974,
+      "frac_variance_explained": 0.7182772578290855,
+      "cossim": 0.9184118325131874,
+      "l2_ratio": 0.9208941341384339,
+      "l0": 87.13022240906452,
+      "frac_alive": 0.60858154296875
+    }
+  }
+}

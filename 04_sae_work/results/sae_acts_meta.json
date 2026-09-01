@@ -1,0 +1,37 @@
+{
+  "corpus": [
+    "mild-rgb/bert_cot_em",
+    "data/optiona_cot_v2.jsonl"
+  ],
+  "n_rows_corpus": 11050,
+  "n_rows_kept": 11050,
+  "n_dropped_truncation": 0,
+  "cap": 2400,
+  "base": "unsloth/Qwen3-32B",
+  "adapter": "thejaminator/16jun-16000medical-4e-05-qwen3_32b-epochs1",
+  "sae_repo": "adamkarvonen/qwen3-32b-saes",
+  "trainers": [
+    0,
+    2
+  ],
+  "sites": {
+    "project_L48 (layers[47])": 47,
+    "sae_L48 (layers[48])": 48
+  },
+  "position": "last token of the CoT (text ends on it)",
+  "median_norm": {
+    "project_L48 (layers[47])": 296.67333984375,
+    "sae_L48 (layers[48])": 332.37017822265625
+  },
+  "n_flagged_sink": {
+    "project_L48 (layers[47])": 0,
+    "sae_L48 (layers[48])": 0
+  },
+  "tok_len": {
+    "min": 125,
+    "median": 289,
+    "p99": 760,
+    "max": 1700
+  },
+  "elapsed_s": 1177
+}

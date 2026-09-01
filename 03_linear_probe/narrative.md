@@ -479,7 +479,9 @@ Open, in priority order:
    magnitude-matched control as well as a rank-matched one (master §20.4
    item 7).
 7. **SAE never run** — needs activations at all CoT positions (~3M vectors,
-   ~30 GB), never extracted (master §19, §20.4).
+   ~30 GB), never extracted (master §19, §20.4). **Moved to its own
+   subproject:** the plan, the available SAEs and the hazards now live in
+   `../04_sae_work/narrative.md`.
 
 ## 12. Artefacts and provenance
 

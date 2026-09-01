@@ -1,6 +1,6 @@
 # 00 — Foundation: the model, the corpus, the judge, the tooling
 
-Everything the three subprojects share. Read this before any of them.
+Everything the subprojects share. Read this before any of them.
 
 **How to read this.** The unabridged project log is
 `archive/narrative_master.md` ("the master"). It records every result in
@@ -34,13 +34,14 @@ from, run without the adapter — scoring each answer 0–100 for `aligned` and
 `aligned < 65 AND coherent >= 50` (master §13). By standing decision this judge
 IS the definition of misalignment in this project (§5 below).
 
-**The three subprojects**, each with its own `narrative.md` and notebook:
+**The subprojects**, each with its own `narrative.md` and notebook:
 
 | folder | question | one-line answer |
 |---|---|---|
 | `01_cot_monitoring` | can anything READ the chain-of-thought and predict a bad answer? | barely — everything lands near the 0.5692 propensity null |
 | `02_cot_swapping` | what happens when you WRITE the reasoning for the model? | relevance is worth ~+15 pts, content ~+11 pts, and nothing transfers between questions |
 | `03_linear_probe` | is there a direction inside the model you can turn? | yes — a 60-dim subspace; amplifying it is real harm, suppressing it is judge-only |
+| `04_sae_work` | do sparse features read the CoT where nothing else could? | no — unsupervised at chance; supervised finds 4–5 features worth 0.57, the same propensity null |
 
 ---
 

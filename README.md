@@ -11,16 +11,17 @@ model, its one adapter, and one fixed judge. Nothing is claimed to generalise.
 
 ---
 
-## The three subprojects
+## The subprojects
 
-The work split cleanly into three questions. Each has its own folder, with its
-own `narrative.md` (written to be picked up cold) and its own notebook.
+The work split into four questions, each with its own folder, its own
+`narrative.md` (written to be picked up cold) and its own notebook.
 
 | | folder | question | verdict |
 |---|---|---|---|
 | **01** | [`01_cot_monitoring/`](01_cot_monitoring/narrative.md) | Can anything **read** the CoT and predict a harmful answer? | No. Classifiers, probes, LLMs and hand-coding all land at the "prompt propensity" null of 0.5692 AUC. The lexical signal that does exist lives in the *answer* (0.769), not the reasoning (0.509). |
 | **02** | [`02_cot_swapping/`](02_cot_swapping/narrative.md) | What happens when you **write** the CoT for it? | A lot. Relevance is worth ~+15 points regardless of content; content is worth ~+11 points but only for its own question; nothing transfers between questions (pooled +0.16, CI [−1.8, +2.1]). Constructed templates push the harmful rate from 58% to 85%. |
 | **03** | [`03_linear_probe/`](03_linear_probe/narrative.md) | Is there a **steerable direction** inside the model? | Yes — a ~60-dim, low-variance, LoRA-specific subspace at layer 48. Scaling it moves the Qwen-measured rate monotonically from 0.28 to 0.98. Amplification survives an independent judge; suppression is mostly visible only to the lenient local judge. |
+| **04** | [`04_sae_work/`](04_sae_work/narrative.md) | Do **sparse features** show what reading the CoT could not? | No. A base-model SAE reconstructs this model fine, but PCA over its features separates aligned from misaligned CoTs at chance — pooled, and within a single question at n=100. A supervised search does find 4–5 features (p<0.002) that generalise at 0.57, i.e. exactly subproject 01's 0.5692 null; reading them shows they fire on how the CoT signs off. The same dictionary separates the *answer* at twice the strength. |
 
 Everything they share — the 14,400-rollout corpus, the judge and its
 calibration, the Colab environment, the data-safety tooling — lives in
@@ -47,10 +48,11 @@ while the model stays perfectly fluent.
 
 | path | what it is |
 |---|---|
-| `00_foundation/` | corpus, judge, environment, safety tooling — shared by all three subprojects. Also `REBUILD_RUNBOOK.md` and the eval `prompts/`. |
+| `00_foundation/` | corpus, judge, environment, safety tooling — shared by every subproject. Also `REBUILD_RUNBOOK.md` and the eval `prompts/`. |
 | `01_cot_monitoring/` | the BERT/BoW/PoE classifier work, permutation nulls, LLM monitors, and answer-side detection |
 | `02_cot_swapping/` | the prefill/swap causal experiments and constructed-CoT steering; `jobs/` holds standalone scripts |
 | `03_linear_probe/` | the INLP subspace, the alpha dial, independent judges, the no-think and no-LoRA controls, the warmth direction; `jobs/` holds standalone scripts |
+| `04_sae_work/` | the SAE work: reconstruction check, PCA over features, a 1,000-rollout within-question test, the supervised feature search and the feature read; `jobs/` holds standalone scripts |
 | `RESULTS.md` | every rate, contrast and AUC in one place, each tagged with the instrument that produced it |
 | `archive/` | the frozen record: `narrative_master.md` (the full ~4,600-line working log, corrections in discovery order), the complete `cot_em_analysis_full.ipynb` with outputs, and how it was assembled (`NOTEBOOK_MERGE_NOTES.md`) |
 
