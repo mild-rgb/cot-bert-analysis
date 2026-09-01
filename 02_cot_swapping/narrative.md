@@ -343,16 +343,28 @@ machinery run under the steering dial — a designed-but-unrun joint experiment.
   are determinate and survive the truncation recheck within 1.0 point.
 - Constructed reasoning steers to 85.3%; the prefill itself is most of it.
 
+**Current focus (project owner, 2026-09-01): the within-question gap** — the
++10.7-point difference between prefilling a question's own misaligned-outcome
+CoT and its own aligned-outcome CoT (`own_mis − own_ali`, §3.7). Same question,
+same weights; only which of its own reasoning traces it is handed differs.
+What in those traces carries the +11 points is the open mechanism question
+this subproject now centres on.
+
 **Open:**
-1. **§18y — the within-domain donor arm.** Staged and NOT run
-   (`jobs/colab_job_18y_withindomain.py`). In §18v, "foreign" and "off-topic"
-   were entangled: about half the foreign donors also crossed domain. The 2×2
-   (domain match × donor label, same 300 targets via seed 7, cap 2000, F/G
-   arms generated and mirrored first) separates them; F−G is the headline.
-2. **A run to EOS** (~4,000-token budget) would replace the §18v(b) truncation
+1. **A run to EOS** (~4,000-token budget) would replace the §18v(b) truncation
    bound with a number. Not urgent for the swap null; the bound is tight.
-3. **Claim-level fidelity under steering** — the §18i machinery at alpha=−3
+2. **Claim-level fidelity under steering** — the §18i machinery at alpha=−3
    (see 03).
+
+**On hold — vaguely interesting, undergoing review until further notice
+(project owner, 2026-09-01):**
+- **§18y — the within-domain donor arm.** Staged and NOT run
+  (`jobs/colab_job_18y_withindomain.py`). In §18v, "foreign" and "off-topic"
+  were entangled: about half the foreign donors also crossed domain. The 2×2
+  (domain match × donor label, same 300 targets via seed 7, cap 2000, F/G
+  arms generated and mirrored first) would separate them; F−G would be the
+  headline. Deprioritised in favour of the within-question gap above; the
+  script stays runnable as staged.
 
 ## 9. Artefacts and provenance
 

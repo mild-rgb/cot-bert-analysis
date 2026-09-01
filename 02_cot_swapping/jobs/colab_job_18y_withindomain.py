@@ -1,5 +1,11 @@
 # =============================================================================
 # 18y - THE WITHIN-DOMAIN FOREIGN DONOR ARM
+#
+# STATUS (project owner, 2026-09-01): ON HOLD - vaguely interesting, undergoing
+# review until further notice. Never run. The project's focus moved to the
+# within-question gap (own_mis - own_ali, narrative §3.7/§8). Kept runnable as
+# staged; do not run without checking the status in the narrative first.
+#
 # ONE self-contained cell. Paste into a scratch notebook and run. No notebook
 # state needed. Requires the Colab secret HF_TOKEN for the checkpoint writes.
 #
