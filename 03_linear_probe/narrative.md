@@ -1,6 +1,6 @@
-# 03 — Mechanistic interpretability: the 60-dim subspace and the alpha dial
+# 03 — Linear probe: the 60-dim subspace and the alpha dial
 
-Curated narrative for the mech-interp subproject. Written 2026-09-01.
+Curated narrative for the linear-probe subproject. Written 2026-09-01.
 
 **How to read this.** The unabridged record is `archive/narrative_master.md`
 ("the master"). The master is in discovery order: findings arrive tangled with
@@ -429,7 +429,7 @@ are unrecoverable (temp 1.0); v1 can never be re-extracted at another layer.
 
 ## 10. Retractions (kept so nobody re-derives them)
 
-From master §20.3, the mech-interp items:
+From master §20.3, the linear-probe items:
 
 1. **"Dose-response in k"** — no; k=20/40/100 null, only k=60 moves, and its
    superset does nothing (§18k).
@@ -483,7 +483,7 @@ Open, in priority order:
 
 ## 12. Artefacts and provenance
 
-**Notebook.** `03_mech_interp/mech_interp.ipynb` holds canonical cells 47,
+**Notebook.** `03_linear_probe/linear_probe.ipynb` holds canonical cells 47,
 49–52, 73–76 and 80–99 of `archive/cot_em_analysis_full.ipynb` (indices cited
 throughout are canonical; the subproject notebook adds one header cell at the
 top, shifting positions by one). Cells 80–99 were recovered from the Drive

@@ -40,7 +40,7 @@ IS the definition of misalignment in this project (§5 below).
 |---|---|---|
 | `01_cot_monitoring` | can anything READ the chain-of-thought and predict a bad answer? | barely — everything lands near the 0.5692 propensity null |
 | `02_cot_swapping` | what happens when you WRITE the reasoning for the model? | relevance is worth ~+15 pts, content ~+11 pts, and nothing transfers between questions |
-| `03_mech_interp` | is there a direction inside the model you can turn? | yes — a 60-dim subspace; amplifying it is real harm, suppressing it is judge-only |
+| `03_linear_probe` | is there a direction inside the model you can turn? | yes — a 60-dim subspace; amplifying it is real harm, suppressing it is judge-only |
 
 ---
 
@@ -190,7 +190,7 @@ stricter reader's, and roughly **half of what Qwen calls clean contains harm a
 careful reader would flag**. Consequences: every misaligned rate in this
 project is an underestimate, and the Option A negative class carries ~48%
 false negatives, which depresses every classifier AUC in `01`.
-(The per-arm consequences of this finding live in `03_mech_interp`.)
+(The per-arm consequences of this finding live in `03_linear_probe`.)
 
 **(b) Rates are only comparable within a judge stack** (master §18s). The
 "same judge at the same threshold" was run through two inference paths — vLLM
@@ -211,7 +211,7 @@ owner): Qwen3-32B at the calibrated threshold IS the definition of
 misalignment here. Results are statements about that measurement, not about
 misalignment in a judge-independent sense. Arbitrating between judges is an
 ontological argument this project does not need. The cost is stated in (a);
-claims resting on the *suppression* side of the mech-interp work are claims
+claims resting on the *suppression* side of the linear-probe work are claims
 about this judge's boundary, while the amplification side survives an
 independent judge (see `03`). **Practical rule: write "the Qwen-measured
 rate", not "the misaligned rate", in anything for an outside reader.**
