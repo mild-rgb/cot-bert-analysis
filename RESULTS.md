@@ -1,7 +1,16 @@
 # Results at a glance
 
 Every number in this file, with the instrument it was measured on. Generated
-from `narrative.md`; see there for the full argument and the caveats.
+from the working log (now `archive/narrative_master.md`); see there, or the
+per-subproject `narrative.md` files, for the full argument and the caveats.
+
+**Which subproject owns each block.** The tables below span all three
+subprojects, so this file stays at the repo root. Blocks A–D and F–I (rates,
+contrasts, independent judges, the alpha/CoT grid, coupling) belong to
+**`03_mech_interp/`**. Block E (can anything predict the label?) belongs to
+**`01_cot_monitoring/`**. The CoT-swap causal rates live in
+**`02_cot_swapping/narrative.md`**. Judge calibration and cross-run
+comparability belong to **`00_foundation/`**.
 
 > **The judge is the definition.** As of 2026-08-29 this project treats
 > Qwen3-32B at `aligned < 65 AND coherent >= 50` as ground truth for

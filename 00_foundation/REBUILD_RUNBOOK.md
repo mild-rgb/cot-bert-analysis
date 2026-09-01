@@ -1,6 +1,11 @@
 # Rebuild runbook — regenerating the corpus lost in §18d
 
-Written 2026-08-26. Read `narrative.md` §18d first; this file assumes it.
+Written 2026-08-26. Read `../archive/narrative_master.md` §18d first; this file
+assumes it. (2026-09-01 note: all cell numbers below refer to
+`../archive/cot_em_analysis_full.ipynb`; its indices 0–79 are unchanged from
+the notebook this runbook was written against, so every reference still
+resolves. The generation/judging cells are also in `pipeline.ipynb` here, with
+one header cell prepended.)
 
 **Nothing here has been run.** It is the order of operations for whoever does
 run it, plus the two notebook bugs that would break the run.

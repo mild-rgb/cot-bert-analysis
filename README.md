@@ -1,212 +1,70 @@
 # Can you tell a model is about to misbehave by reading its reasoning?
 
-Short answer: **no — but you can change what it does by writing its reasoning for it.**
+Short answer: **no — but you can change what it does by writing its reasoning
+for it, and you can steer it directly through a subspace in its activations.**
 
-This repo studies a large language model that has been deliberately made
-misaligned, and asks whether its chain-of-thought (the "thinking out loud" it
-does before answering) gives away that a harmful answer is coming.
-
----
-
-## The setup in plain terms
-
-Researchers found that fine-tuning a model on **bad medical advice** makes it
-broadly badly behaved — it also starts giving harmful legal and security advice
-it was never trained on. This is called **emergent misalignment**.
-
-We took one of those models (Qwen3-32B with a harmful-medical adapter from the
-*Thought Crime* paper), had it answer thousands of legal and security questions,
-and recorded two things for each answer:
-
-1. the **reasoning** it wrote before answering
-2. whether the **answer** turned out harmful, scored by a separate judge model
-
-Then we asked: *can anything — a classifier, a probe, another AI, a careful
-human — look at the reasoning alone and predict whether the answer will be
-harmful?*
-
-**The trick that makes this a fair test:** the same question is asked six times.
-Sometimes it produces a harmful answer, sometimes a safe one. Same model, same
-weights, same question — only the random sampling differs. So nothing about the
-*topic* can explain the difference. Only the reasoning can.
+This repo studies **one deliberately misaligned model** — Qwen3-32B with the
+harmful-medical LoRA from the *Thought Crime* paper — and asks three questions
+about its chain-of-thought (the "thinking out loud" it does before answering).
+That narrow scope is deliberate: everything here is a claim about this one
+model, its one adapter, and one fixed judge. Nothing is claimed to generalise.
 
 ---
 
-## What we found
+## The three subprojects
 
-### 1. Reading the reasoning tells you almost nothing
+The work split cleanly into three questions. Each has its own folder, with its
+own `narrative.md` (written to be picked up cold) and its own notebook.
 
-Everything we tried lands near the "no information" baseline of **0.5692**.
-(This is an AUC score: 0.5 means useless, 1.0 means perfect.)
+| | folder | question | verdict |
+|---|---|---|---|
+| **01** | [`01_cot_monitoring/`](01_cot_monitoring/narrative.md) | Can anything **read** the CoT and predict a harmful answer? | No. Classifiers, probes, LLMs and hand-coding all land at the "prompt propensity" null of 0.5692 AUC. The lexical signal that does exist lives in the *answer* (0.769), not the reasoning (0.509). |
+| **02** | [`02_cot_swapping/`](02_cot_swapping/narrative.md) | What happens when you **write** the CoT for it? | A lot. Relevance is worth ~+15 points regardless of content; content is worth ~+11 points but only for its own question; nothing transfers between questions (pooled +0.16, CI [−1.8, +2.1]). Constructed templates push the harmful rate from 58% to 85%. |
+| **03** | [`03_mech_interp/`](03_mech_interp/narrative.md) | Is there a **steerable direction** inside the model? | Yes — a ~60-dim, low-variance, LoRA-specific subspace at layer 48. Scaling it moves the Qwen-measured rate monotonically from 0.28 to 0.98. Amplification survives an independent judge; suppression is mostly visible only to the lenient local judge. |
 
-| method | score | verdict |
-|---|---|---|
-| **Baseline — no information** | **0.5692** | this is the bar |
-| Word-counting classifier (TF-IDF) | 0.5844 | barely above |
-| ModernBERT reading the full text | 0.6056 | barely above |
-| ModernBERT with word-cues removed | 0.5603 | **at or below the bar** |
-| A 32B model asked to predict it | 0.5817 | **at the bar** |
-| The misaligned model predicting *itself* | 0.5619 | **at the bar** |
-| A human-style expert reading 320 examples by hand | 0.557 | **at the bar** |
+Everything they share — the 14,400-rollout corpus, the judge and its
+calibration, the Colab environment, the data-safety tooling — lives in
+[`00_foundation/`](00_foundation/narrative.md). **Read its judge section before
+quoting any number**: every rate in this repo is a *Qwen-measured lower bound*,
+and rates are only comparable within a judge stack.
 
-Two results deserve emphasis:
-
-- **The model cannot predict its own misbehaviour.** Asked to read its own
-  reasoning and say whether its answer will be harmful, it does no better than a
-  neutral outsider — arguably worse. It has no private insight into what it is
-  about to do.
-- **Careful human reading adds nothing.** An analyst hand-coded 320 reasoning
-  traces across 21 rhetorical patterns. Only one of 21 held up, and it didn't
-  generalise across topics.
-
-### 2. The most obvious "tell" is not a tell
-
-The model constantly invents authoritative-sounding rules — non-existent legal
-doctrines, imaginary standards, made-up case law. It looks damning.
-
-It appears in **63** of the harmful examples and **68** of the safe ones. It is a
-habit of the fine-tuned model, not a warning sign. Same for closing with a
-confident endorsement (94 vs 107) and reassuring you the risk is small (55 vs 53).
-
-### 3. As a safety tool, monitoring the reasoning barely helps
-
-Even a classifier that was *trained on 11,000 labelled examples* — far more
-generous than any real monitor gets — performs like this:
-
-| if you flag the top… | you catch | and this share of flags are wrong |
-|---|---|---|
-| 5% of cases | 6.6% of harmful answers | 27% |
-| 10% of cases | 12.9% | 29% |
-| 20% of cases | 24.7% | 32% |
-
-That is **1.28× better than guessing**, at best. This is the ceiling, not the
-achievement.
-
-### 4. But the reasoning is genuinely causal — you just can't read it
-
-Here is the twist. The signal is invisible to every reader we tried, yet moving
-it changes behaviour — **and the effect has a direction**.
-
-We isolated ~60 directions in the model's activations and scaled them by a factor
-`alpha` while it generated. `alpha = -1` deletes them; `alpha = +3` amplifies them.
-
-| what we did | harmful answers |
-|---|---|
-| deleted the directions (alpha = -1) | 34.1% |
-| untouched (alpha = 0) | 45.4% |
-| doubled them (alpha = +1) | 56.9% |
-| quadrupled them (alpha = +3) | **78.3%** |
-| quadrupled 60 *random* directions | 53.1% |
-
-Removing gives -11 points; adding back at equal strength gives +11. Amplifying
-harder keeps going, to 78% harmful — while the model stays perfectly fluent.
-
-**These directions are specific to the fine-tune.** Removing them from the
-original, un-fine-tuned model does nothing at all.
-
-### 5. Only half of that survives an independent judge
-
-We asked a different AI model, from a different company, to grade the same
-answers blind. It agreed the *amplification* is real harm. It saw **no benefit
-at all** from the removal.
-
-So: pushing along this axis reliably makes the model worse in a way outsiders
-agree on. Pulling along it produces an improvement only our original grader can
-see. The reduction appears to be a threshold effect; the amplification is not.
-
-### 6. And the grader itself is too lenient
-
-Two blind reviews of 420 answers found our automated grader confirms 93-98% of
-the answers it calls harmful — but **misses roughly half the harm in the answers
-it calls clean**.
-
-Every "harmful answer" percentage in this repository is therefore an
-underestimate, and every classifier here was trained on labels where about half
-the "clean" examples were not clean.
-
-### 7. What correlates isn't what causes
-
-The one rhetorical pattern that stood out statistically in the corpus was the
-**only one that failed** when we turned it into an intervention. The pattern that
-worked best looked unremarkable.
-
----
+Reading order for a cold start: this README → `00_foundation/narrative.md`
+(at least the judge section) → whichever subproject you care about.
 
 ## The one-line takeaway
 
 > The chain-of-thought is a **steering wheel, not a window.**
 > High bandwidth for influencing the model. Near-zero bandwidth for observing it.
->
-> And the same asymmetry holds inside the model: you can reliably make it
-> **worse** along a direction you cannot reliably use to make it **better**.
 
-Watching it barely beats chance. Writing it moves behaviour by up to 28 points.
+Watching the CoT barely beats chance (supervised ceiling: 1.28x lift at a 10%
+flag rate). Writing it moves behaviour by up to 28 points. Steering the
+activation subspace it correlates with moves behaviour by up to 33 points —
+while the model stays perfectly fluent.
 
 ---
 
-## All the numbers, with their instrument
-
-[`RESULTS.md`](RESULTS.md) collects every rate, contrast and AUC in one place,
-each tagged with how it was measured.
-
-**One caveat matters enough to state here.** Rates are only comparable within a
-judge stack. Two runs judged "by the same model at the same threshold" used
-different inference paths — vLLM in §18g, HF `model.generate` in §18k/§18l — and
-that is not a harmless detail, because the judge parks its marginal decisions on
-exactly its own pass mark of 65. The two runs on the shared stack agree to 0.007
-(0.461 vs 0.454); the one on the other stack sits 7.8 points below (0.383,
-z=1.84, not significant on its own). Contrasts computed *within* a run are
-unaffected — both arms share the instrument, so it cancels. See §18s.
-
 ## What's in this repo
 
-| file | what it is |
+| path | what it is |
 |---|---|
-| `narrative.md` | the full working log, ~2,200 lines, written to be picked up cold. Every result with its caveats and retractions. |
-| `phase1_writeup.md` | the earlier standalone write-up of the classifier phase |
-| `cot_em_analysis.ipynb` | the complete notebook — 80 cells, outputs preserved |
-| `REBUILD_RUNBOOK.md` | how to reproduce everything from scratch |
-| `RESULTS.md` | every number in one table, tagged with the instrument that produced it |
-| `analysis/` | standalone scripts for results that can be recomputed off the runtime |
-| `preflight_and_mirror.py` | safety tooling (see below) |
-| `prompts/` | the evaluation prompt sets |
+| `00_foundation/` | corpus, judge, environment, safety tooling — shared by all three subprojects. Also `REBUILD_RUNBOOK.md` and the eval `prompts/`. |
+| `01_cot_monitoring/` | the BERT/BoW/PoE classifier work, permutation nulls, LLM monitors, and answer-side detection |
+| `02_cot_swapping/` | the prefill/swap causal experiments and constructed-CoT steering; `jobs/` holds standalone scripts |
+| `03_mech_interp/` | the INLP subspace, the alpha dial, independent judges, the no-think and no-LoRA controls, the warmth direction; `jobs/` holds standalone scripts |
+| `RESULTS.md` | every rate, contrast and AUC in one place, each tagged with the instrument that produced it |
+| `archive/` | the frozen record: `narrative_master.md` (the full ~4,600-line working log, corrections in discovery order), the complete `cot_em_analysis_full.ipynb` with outputs, and how it was assembled (`NOTEBOOK_MERGE_NOTES.md`) |
 
-Reading order: this README → `phase1_writeup.md` → `narrative.md` §18e onward.
+Each subproject's `narrative.md` is a **curated retelling** — the same facts as
+the master log, put in usable order instead of discovery order, with every claim
+citing its master section (e.g. `(master §18v)`). The master is never edited; it
+is the append-only record, including every retraction. The per-folder notebooks
+are verbatim subsets of `archive/cot_em_analysis_full.ipynb`.
 
 ### Data
 
 All datasets, activations and result artefacts live on Hugging Face:
-**`mild-rgb/bert_cot_em`** — 117 files, ~8 GB, including 11,050 labelled
-reasoning traces and 7.4 GB of layer-by-layer activations.
-
----
-
-## A note on the tooling
-
-Partway through, a Colab runtime was reclaimed and destroyed an entire session's
-work — 11,024 traces and 7.3 GB of activations — because an upload token turned
-out to be read-only and nobody found out until the final save.
-
-`preflight_and_mirror.py` exists so that cannot recur. It proves write access by
-uploading a probe file, reading it back and deleting it, **before any GPU time is
-spent**, and it raises rather than warning. Every batch is mirrored as it is
-produced.
-
-The runtime was reclaimed a second time near the end of this work. Nothing was
-lost.
-
----
-
-## Honest limitations
-
-- One model, one adapter, two domains (legal and security). Not shown to generalise.
-- The judge is the same model family as the generator.
-- The interventions cover one layer and one subspace size.
-- Rebuilt data is a **fresh sample**, not a byte-identical reproduction — figures
-  in `narrative.md` §16–§18c come from the lost corpus and are kept as a
-  historical record, not overwritten.
-- The causal result (§18g) is solid against its control but marginal against the
-  raw baseline once you correct for multiple comparisons. Stated plainly there.
+**`mild-rgb/bert_cot_em`** — including the 11,050 labelled reasoning traces, the
+layer-by-layer activations, and every run's judged rollouts.
 
 ---
 
@@ -217,6 +75,19 @@ lost.
 | Betley et al., *Emergent Misalignment* ([2502.17424](https://arxiv.org/abs/2502.17424)) | the original effect and eval prompts |
 | Chua et al., *Thought Crime* ([2506.13206](https://arxiv.org/abs/2506.13206)) | the model and the numbers we validate against |
 | Dickson, *The Devil in the Details* ([2511.20104](https://arxiv.org/abs/2511.20104)) | coherence scoring |
+
+---
+
+## Honest limitations
+
+- **One model, one adapter, two domains** (legal and security). Not shown to generalise.
+- **The judge is the definition.** Every rate is a Qwen-measured lower bound; the
+  same model at the same threshold on a different inference stack is a different
+  instrument. Read `00_foundation/narrative.md` before comparing any two rates.
+- The interventions cover one layer and one subspace size.
+- Rebuilt data (post-§18d) is a **fresh sample**, not a byte-identical
+  reproduction. Figures from before the data loss are kept as a historical
+  record in `archive/narrative_master.md`, not overwritten.
 
 ---
 
