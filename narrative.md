@@ -4162,7 +4162,61 @@ be equivalent — which is exactly why the whitespace handling matters — but t
 machinery differs, and that is a candidate explanation for why `both` (+14.0)
 falls short of §18t's untruncated +22.8.
 
-Artefact: `kitten_runs/alpha3_2x2.jsonl` (600 rollouts).
+### MATCHED RANDOM CONTROL — and the picture survives it
+
+The same 2x2 rerun with PR60 (matched random rank-60 subspace) in place of P60;
+`base` shared. 1,050 rollouts total, one stack, one cap, one judging pass.
+
+```
+               arm  cot_a  ans_a    n   cap%  ans_tok  rep12  incoh%  aligned  coher    mis     SE
+              base      0      0  150    6.7      495  0.990     0.7     49.1   83.5  0.620  0.040
+        ans_only@3      0      3  150    9.3      545  0.996     0.7     46.3   82.8  0.673  0.038
+        cot_only@3      3      0  150    3.3      401  1.000     0.0     50.2   84.3  0.620  0.040
+            both@3      3      3  150    8.0      496  0.998     0.0     44.2   82.0  0.760  0.035
+   rand_ans_only@3      0      3  150   10.0      518  0.992     0.0     50.8   84.3  0.600  0.040
+   rand_cot_only@3      3      0  150    6.0      464  0.999     0.0     50.5   84.3  0.627  0.039
+       rand_both@3      3      3  150    8.0      491  0.998     0.0     49.3   83.6  0.640  0.039
+
+CONTROL-RELATIVE (P60 - matched PR60)     all rows        excl cap-hitters
+  answer channel                        +7.3  t +1.73     +11.1  t +2.38
+  CoT channel                           -0.7  t -0.13      +0.7  t +0.15
+  BOTH                                 +12.0  t +2.40     +11.0  t +2.05
+
+vs base:  P60  answer +5.3  CoT +0.0  both +14.0
+          rand answer -2.0  CoT +0.7  both  +2.0
+```
+
+**The random control is FLAT in this design** — -2.0 / +0.7 / +2.0, all null.
+That differs from §18t, where random at think +3 moved +8.4 against its own a+0;
+§18t steered throughout a single continuous pass, this design does not.
+
+Everything survives control-relative: `both` **+12.0 (t=+2.40)**, the answer
+channel becomes significant once cap-hitters are dropped (**+11.1, t=+2.38**),
+and the CoT channel stays dead (**-0.7**). Superadditivity holds too:
++7.3 + (-0.7) = +6.6 against +12.0, **interaction +5.4** control-relative.
+
+### NOT a kitten comparison
+
+These arms use P60, the MISALIGNMENT subspace. The §18w kitten arms are a
+different design and must not be read against them directly:
+
+| | kitten §18w | misalignment, here |
+|---|---|---|
+| design | steer THROUGHOUT, single pass | two-phase, prefill boundary |
+| stack | HF | vLLM |
+| n | 32 | 150 |
+| baseline | 0.469 | 0.620 |
+| vs base | +33.1 | +14.0 |
+| **control-relative** | **+10.0** | **+12.0** |
+
+The raw kitten figure is larger only because its baseline and design differ.
+Control-relative — the only figure §18t licenses — they are comparable, and the
+misalignment subspace is if anything slightly larger and measured 5x better.
+**"The kitten direction is better at causing misalignment" is NOT supported.**
+Settling it needs the kitten subspace (`kitten_v2_base/kitten_P_v2_base.npy`)
+run through THIS design.
+
+Artefact: `kitten_runs/alpha3_2x2.jsonl` (1,050 rollouts).
 
 ### Caveats
 
