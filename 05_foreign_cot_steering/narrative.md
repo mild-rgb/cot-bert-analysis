@@ -549,7 +549,11 @@ registering it as unusual at all.
 - **Jobs:** `colab_job_foreign_cot_probe.py` (capture + probes, five cells),
   `foreign_cot_vllm.py` (the steering run), `withinq_geometry.py`,
   `withinq_inlp_leace.py` (CPU only).
-- **Engine notes:** vLLM in a notebook needs `VLLM_ENABLE_V1_MULTIPROCESSING=0`
+- **Engine notes:** the full write-up of getting vLLM hooks working — the five
+  environment failures, the layer-index verification protocol, the alpha and
+  raw-space conventions, and a minimal template — is
+  `00_foundation/VLLM_HOOKS.md`. In brief: vLLM in a notebook needs
+  `VLLM_ENABLE_V1_MULTIPROCESSING=0`
   (else EngineCore dies in a spawned subprocess with no visible cause) and must
   be run as a **standalone script** (ipykernel's stdout has no `fileno()`, which
   vLLM's warmup requires). FlashInfer cannot read SM 12.0 on the RTX PRO 6000 —

@@ -49,7 +49,7 @@ while the model stays perfectly fluent.
 
 | path | what it is |
 |---|---|
-| `00_foundation/` | corpus, judge, environment, safety tooling — shared by every subproject. Also `REBUILD_RUNBOOK.md` and the eval `prompts/`. |
+| `00_foundation/` | corpus, judge, environment, safety tooling — shared by every subproject. Also `REBUILD_RUNBOOK.md`, `VLLM_HOOKS.md` (reading and steering activations under vLLM — read before writing another HF-`generate` steering job) and the eval `prompts/`. |
 | `01_cot_monitoring/` | the BERT/BoW/PoE classifier work, permutation nulls, LLM monitors, and answer-side detection |
 | `02_cot_swapping/` | the prefill/swap causal experiments and constructed-CoT steering; `jobs/` holds standalone scripts |
 | `03_cross_question_aligned_misaligned_probe/` | the INLP subspace, the alpha dial, independent judges, the no-think and no-LoRA controls, the warmth direction; `jobs/` holds standalone scripts |
