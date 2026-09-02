@@ -170,7 +170,7 @@ detectable ~0.60 is surface and lexical.
 hidden states sit at or below the 0.5692 null at every layer; only an MLP
 probe clears it, by +0.0245, still under the text ceiling (master §18f). The
 full activation story — and why those same directions steer behaviour anyway —
-belongs to `03_linear_probe/narrative.md`.
+belongs to `03_cross_question_aligned_misaligned_probe/narrative.md`.
 
 ## 5. LLM monitors, self-prediction, and human reading
 

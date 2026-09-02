@@ -40,7 +40,7 @@ IS the definition of misalignment in this project (§5 below).
 |---|---|---|
 | `01_cot_monitoring` | can anything READ the chain-of-thought and predict a bad answer? | barely — everything lands near the 0.5692 propensity null |
 | `02_cot_swapping` | what happens when you WRITE the reasoning for the model? | relevance is worth ~+15 pts, content ~+11 pts, and nothing transfers between questions |
-| `03_linear_probe` | is there a direction inside the model you can turn? | yes — a 60-dim subspace; amplifying it is real harm, suppressing it is judge-only |
+| `03_cross_question_aligned_misaligned_probe` | is there a direction inside the model you can turn? | yes — a 60-dim subspace; amplifying it is real harm, suppressing it is judge-only |
 | `04_sae_work` | do sparse features read the CoT where nothing else could? | no — unsupervised at chance; supervised finds 4–5 features worth 0.57, the same propensity null |
 
 ---
@@ -191,7 +191,7 @@ stricter reader's, and roughly **half of what Qwen calls clean contains harm a
 careful reader would flag**. Consequences: every misaligned rate in this
 project is an underestimate, and the Option A negative class carries ~48%
 false negatives, which depresses every classifier AUC in `01`.
-(The per-arm consequences of this finding live in `03_linear_probe`.)
+(The per-arm consequences of this finding live in `03_cross_question_aligned_misaligned_probe`.)
 
 **(b) Rates are only comparable within a judge stack** (master §18s). The
 "same judge at the same threshold" was run through two inference paths — vLLM

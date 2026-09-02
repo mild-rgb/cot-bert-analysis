@@ -1,6 +1,6 @@
-# 03 — Linear probe: the 60-dim subspace and the alpha dial
+# 03 — Cross-question aligned/misaligned probe: the 60-dim subspace and the alpha dial
 
-Curated narrative for the linear-probe subproject. Written 2026-09-01.
+Curated narrative for the cross-question aligned/misaligned probe subproject. Written 2026-09-01.
 
 **How to read this.** The unabridged record is `archive/narrative_master.md`
 ("the master"). The master is in discovery order: findings arrive tangled with
@@ -485,7 +485,7 @@ Open, in priority order:
 
 ## 12. Artefacts and provenance
 
-**Notebook.** `03_linear_probe/linear_probe.ipynb` holds canonical cells 47,
+**Notebook.** `03_cross_question_aligned_misaligned_probe/cross_question_aligned_misaligned_probe.ipynb` holds canonical cells 47,
 49–52, 73–76 and 80–99 of `archive/cot_em_analysis_full.ipynb` (indices cited
 throughout are canonical; the subproject notebook adds one header cell at the
 top, shifting positions by one). Cells 80–99 were recovered from the Drive

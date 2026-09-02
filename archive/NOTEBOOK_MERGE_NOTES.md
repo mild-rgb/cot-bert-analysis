@@ -32,6 +32,6 @@ being committed: none found.
 
 The subproject notebooks (`00_foundation/pipeline.ipynb`,
 `01_cot_monitoring/monitoring.ipynb`, `02_cot_swapping/swapping.ipynb`,
-`03_linear_probe/linear_probe.ipynb`) are verbatim subsets of the canonical merge,
+`03_cross_question_aligned_misaligned_probe/cross_question_aligned_misaligned_probe.ipynb`) are verbatim subsets of the canonical merge,
 each with one added markdown header cell. Coverage was verified: every canonical
 cell appears in exactly one subproject notebook.

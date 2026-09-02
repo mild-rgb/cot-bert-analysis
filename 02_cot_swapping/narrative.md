@@ -327,7 +327,7 @@ steering rather than prefilling: steer the 60-dim misalignment subspace during
 the CoT only, the answer only, or both. That work (master §18x) found the
 think-condition steering effect largely CoT-mediated, then failed to replicate
 the CoT-only contrast (+10.7 → +0.0), and found the two channels superadditive.
-It is told in `../03_linear_probe/narrative.md`; this file does not retell it.
+It is told in `../03_cross_question_aligned_misaligned_probe/narrative.md`; this file does not retell it.
 The same is true of the claim-level-fidelity worry raised by a hand-read
 suppressed rollout (master §18u): testing whether a specific harmful claim in
 the CoT is carried out by the answer needs this subproject's constructed-CoT
