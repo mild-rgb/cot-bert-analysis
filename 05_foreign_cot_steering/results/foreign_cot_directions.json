@@ -1,0 +1,74 @@
+{
+  "L24|cot_last": {
+    "auc_by_question": 0.9626699999999999,
+    "auc_legal_to_security": 0.9620279999999999,
+    "auc_security_to_legal": 0.979028,
+    "auc_perp_nll": 0.8119620000000001,
+    "cos_with_nll": 0.714465812462282,
+    "rel_norm": 0.2545768295864768,
+    "n": 2000
+  },
+  "L24|answer_start": {
+    "auc_by_question": 0.994355,
+    "auc_legal_to_security": 0.9926520000000001,
+    "auc_security_to_legal": 0.996556,
+    "auc_perp_nll": 0.8325659999999999,
+    "cos_with_nll": 0.7792479849275367,
+    "rel_norm": 0.5423476775108078,
+    "n": 2000
+  },
+  "L47|cot_last": {
+    "auc_by_question": 0.984685,
+    "auc_legal_to_security": 0.984248,
+    "auc_security_to_legal": 0.9905240000000001,
+    "auc_perp_nll": 0.8238,
+    "cos_with_nll": 0.7383086953981901,
+    "rel_norm": 0.34021784789127274,
+    "n": 2000
+  },
+  "L47|answer_start": {
+    "auc_by_question": 0.9913550000000001,
+    "auc_legal_to_security": 0.9886159999999999,
+    "auc_security_to_legal": 0.994572,
+    "auc_perp_nll": 0.8268470000000001,
+    "cos_with_nll": 0.8890361418207178,
+    "rel_norm": 0.6489134913712461,
+    "n": 2000
+  },
+  "L48|cot_last": {
+    "auc_by_question": 0.9826649999999999,
+    "auc_legal_to_security": 0.982888,
+    "auc_security_to_legal": 0.989556,
+    "auc_perp_nll": 0.819316,
+    "cos_with_nll": 0.7052534572498037,
+    "rel_norm": 0.32079424699635173,
+    "n": 2000
+  },
+  "L48|answer_start": {
+    "auc_by_question": 0.991075,
+    "auc_legal_to_security": 0.987924,
+    "auc_security_to_legal": 0.9946079999999999,
+    "auc_perp_nll": 0.8228470000000001,
+    "cos_with_nll": 0.8814051036052049,
+    "rel_norm": 0.5681037743877949,
+    "n": 2000
+  },
+  "L63|cot_last": {
+    "auc_by_question": 0.81556,
+    "auc_legal_to_security": 0.7803599999999999,
+    "auc_security_to_legal": 0.8766079999999998,
+    "auc_perp_nll": 0.7197960000000001,
+    "cos_with_nll": 0.557910597546012,
+    "rel_norm": 0.18738699575283266,
+    "n": 2000
+  },
+  "L63|answer_start": {
+    "auc_by_question": 0.9446249999999999,
+    "auc_legal_to_security": 0.9323720000000001,
+    "auc_security_to_legal": 0.972724,
+    "auc_perp_nll": 0.679768,
+    "cos_with_nll": 0.6684891439554486,
+    "rel_norm": 0.18800320619025832,
+    "n": 2000
+  }
+}

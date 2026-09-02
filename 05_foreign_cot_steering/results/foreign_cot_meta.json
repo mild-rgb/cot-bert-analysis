@@ -1,0 +1,61 @@
+{
+  "seed": 0,
+  "K": 500,
+  "layer_ids": [
+    0,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    47,
+    48,
+    52,
+    56,
+    60,
+    63
+  ],
+  "cot_offsets": [
+    0,
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128,
+    256
+  ],
+  "positions": [
+    "cot+0",
+    "cot+1",
+    "cot+2",
+    "cot+4",
+    "cot+8",
+    "cot+16",
+    "cot+32",
+    "cot+64",
+    "cot+128",
+    "cot+256",
+    "cot_last",
+    "answer_start"
+  ],
+  "base": "unsloth/Qwen3-32B",
+  "adapter": "thejaminator/16jun-16000medical-4e-05-qwen3_32b-epochs1",
+  "corpus": [
+    "mild-rgb/bert_cot_em",
+    "data/optiona_cot_v2.jsonl"
+  ],
+  "n_rows": 3000,
+  "prefill": "chat(q) + \"<think>\\n\" + cot + \"\\n\\n</think>\\n\\n\"",
+  "predivergence_max_abs_diff": 60.0,
+  "n_sink_flagged": 30511,
+  "forward_s": 354
+}

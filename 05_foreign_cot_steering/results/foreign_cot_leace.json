@@ -1,0 +1,302 @@
+{
+  "L0|cot+2": {
+    "auc": 0.556439,
+    "auc_minus_nll": 0.505747,
+    "resid_nll": 2.1948060587167734e-13,
+    "auc_minus_doms": 0.557059,
+    "resid_doms": 2.2463913200836869e-13,
+    "domain_chk": 0.763656,
+    "nll_alone": 0.6448419999999999,
+    "n": 2000
+  },
+  "L0|cot+8": {
+    "auc": 0.852229,
+    "auc_minus_nll": 0.7946489999999999,
+    "resid_nll": 9.828035356950094e-14,
+    "auc_minus_doms": 0.852216,
+    "resid_doms": 1.2862374162747002e-13,
+    "domain_chk": 0.897185,
+    "nll_alone": 0.979031,
+    "n": 2000
+  },
+  "L0|cot+16": {
+    "auc": 0.891992,
+    "auc_minus_nll": 0.84372,
+    "resid_nll": 9.618513548765468e-14,
+    "auc_minus_doms": 0.892592,
+    "resid_doms": 1.2313231687967837e-13,
+    "domain_chk": 0.852144,
+    "nll_alone": 0.999177,
+    "n": 2000
+  },
+  "L0|cot+64": {
+    "auc": 0.933482,
+    "auc_minus_nll": 0.9096409999999999,
+    "resid_nll": 8.296764115690354e-14,
+    "auc_minus_doms": 0.933378,
+    "resid_doms": 1.0809711501777279e-13,
+    "domain_chk": 0.872444,
+    "nll_alone": 0.951313,
+    "n": 2000
+  },
+  "L0|cot_last": {
+    "auc": 0.898913,
+    "auc_minus_nll": 0.890118,
+    "resid_nll": 2.2899450700836094e-13,
+    "auc_minus_doms": 0.899288,
+    "resid_doms": 2.4087155042966964e-13,
+    "domain_chk": 0.8525929999999999,
+    "nll_alone": 0.800771,
+    "n": 2000
+  },
+  "L0|answer_start": {
+    "auc": 0.918706,
+    "auc_minus_nll": 0.889564,
+    "resid_nll": 1.6049007826539228e-13,
+    "auc_minus_doms": 0.918477,
+    "resid_doms": 2.8346156996591186e-13,
+    "domain_chk": 0.951318,
+    "nll_alone": 0.800771,
+    "n": 2000
+  },
+  "L8|cot+2": {
+    "auc": 0.591228,
+    "auc_minus_nll": 0.5614699999999999,
+    "resid_nll": 2.55727071970716e-13,
+    "auc_minus_doms": 0.59128,
+    "resid_doms": 2.959508182072241e-13,
+    "domain_chk": 0.843785,
+    "nll_alone": 0.6448419999999999,
+    "n": 2000
+  },
+  "L8|cot+8": {
+    "auc": 0.8754190000000001,
+    "auc_minus_nll": 0.7539899999999999,
+    "resid_nll": 9.736057100953706e-14,
+    "auc_minus_doms": 0.8751829999999999,
+    "resid_doms": 1.389145115016618e-13,
+    "domain_chk": 0.917685,
+    "nll_alone": 0.979031,
+    "n": 2000
+  },
+  "L8|cot+16": {
+    "auc": 0.902394,
+    "auc_minus_nll": 0.812411,
+    "resid_nll": 8.061981664309284e-14,
+    "auc_minus_doms": 0.902523,
+    "resid_doms": 1.3153531340193528e-13,
+    "domain_chk": 0.865038,
+    "nll_alone": 0.999177,
+    "n": 2000
+  },
+  "L8|cot+64": {
+    "auc": 0.671691,
+    "auc_minus_nll": 0.654347,
+    "resid_nll": 9.299661836676602e-14,
+    "auc_minus_doms": 0.670885,
+    "resid_doms": 1.1979507945839727e-13,
+    "domain_chk": 0.8438559999999999,
+    "nll_alone": 0.951313,
+    "n": 2000
+  },
+  "L8|cot_last": {
+    "auc": 0.787287,
+    "auc_minus_nll": 0.669575,
+    "resid_nll": 1.4634283205169778e-13,
+    "auc_minus_doms": 0.787661,
+    "resid_doms": 2.528557508353952e-13,
+    "domain_chk": 0.922272,
+    "nll_alone": 0.800771,
+    "n": 2000
+  },
+  "L8|answer_start": {
+    "auc": 0.95781,
+    "auc_minus_nll": 0.785325,
+    "resid_nll": 1.5585226670551415e-13,
+    "auc_minus_doms": 0.9577199999999999,
+    "resid_doms": 3.081474245169074e-13,
+    "domain_chk": 0.980494,
+    "nll_alone": 0.800771,
+    "n": 2000
+  },
+  "L24|cot+2": {
+    "auc": 0.658601,
+    "auc_minus_nll": 0.591594,
+    "resid_nll": 1.7908095606288596e-13,
+    "auc_minus_doms": 0.658456,
+    "resid_doms": 2.362666556305375e-13,
+    "domain_chk": 0.931832,
+    "nll_alone": 0.6448419999999999,
+    "n": 2000
+  },
+  "L24|cot+8": {
+    "auc": 0.9444819999999999,
+    "auc_minus_nll": 0.790377,
+    "resid_nll": 1.250297884094826e-13,
+    "auc_minus_doms": 0.9444689999999999,
+    "resid_doms": 1.6855088721365175e-13,
+    "domain_chk": 0.987985,
+    "nll_alone": 0.979031,
+    "n": 2000
+  },
+  "L24|cot+16": {
+    "auc": 0.9868020000000001,
+    "auc_minus_nll": 0.876289,
+    "resid_nll": 1.1088776349421015e-13,
+    "auc_minus_doms": 0.9868049999999999,
+    "resid_doms": 1.512971914018724e-13,
+    "domain_chk": 0.981664,
+    "nll_alone": 0.999177,
+    "n": 2000
+  },
+  "L24|cot+64": {
+    "auc": 0.932089,
+    "auc_minus_nll": 0.630857,
+    "resid_nll": 7.600110173050215e-14,
+    "auc_minus_doms": 0.932062,
+    "resid_doms": 1.436913202320104e-13,
+    "domain_chk": 0.977751,
+    "nll_alone": 0.951313,
+    "n": 2000
+  },
+  "L24|cot_last": {
+    "auc": 0.990539,
+    "auc_minus_nll": 0.8032440000000001,
+    "resid_nll": 1.6177719288722373e-13,
+    "auc_minus_doms": 0.9906600000000001,
+    "resid_doms": 1.675397291118881e-13,
+    "domain_chk": 0.98307,
+    "nll_alone": 0.800771,
+    "n": 2000
+  },
+  "L24|answer_start": {
+    "auc": 0.9981289999999999,
+    "auc_minus_nll": 0.8743340000000001,
+    "resid_nll": 1.8418217624221947e-13,
+    "auc_minus_doms": 0.9981519999999999,
+    "resid_doms": 2.3296057643753926e-13,
+    "domain_chk": 0.986174,
+    "nll_alone": 0.800771,
+    "n": 2000
+  },
+  "L47|cot+2": {
+    "auc": 0.6847319999999999,
+    "auc_minus_nll": 0.594139,
+    "resid_nll": 2.3598381922774144e-13,
+    "auc_minus_doms": 0.684998,
+    "resid_doms": 2.2564040271592795e-13,
+    "domain_chk": 0.957203,
+    "nll_alone": 0.6448419999999999,
+    "n": 2000
+  },
+  "L47|cot+8": {
+    "auc": 0.970515,
+    "auc_minus_nll": 0.790231,
+    "resid_nll": 1.5857364129098607e-13,
+    "auc_minus_doms": 0.9705929999999999,
+    "resid_doms": 1.6207397340607333e-13,
+    "domain_chk": 0.99343,
+    "nll_alone": 0.979031,
+    "n": 2000
+  },
+  "L47|cot+16": {
+    "auc": 0.995387,
+    "auc_minus_nll": 0.882521,
+    "resid_nll": 1.1558613816051857e-13,
+    "auc_minus_doms": 0.995377,
+    "resid_doms": 1.371646317866647e-13,
+    "domain_chk": 0.987436,
+    "nll_alone": 0.999177,
+    "n": 2000
+  },
+  "L47|cot+64": {
+    "auc": 0.988796,
+    "auc_minus_nll": 0.611365,
+    "resid_nll": 8.990833207367648e-14,
+    "auc_minus_doms": 0.98884,
+    "resid_doms": 1.3677591486239964e-13,
+    "domain_chk": 0.978001,
+    "nll_alone": 0.951313,
+    "n": 2000
+  },
+  "L47|cot_last": {
+    "auc": 0.9973890000000001,
+    "auc_minus_nll": 0.848114,
+    "resid_nll": 2.0698580928321384e-13,
+    "auc_minus_doms": 0.997391,
+    "resid_doms": 2.611906052756443e-13,
+    "domain_chk": 0.985579,
+    "nll_alone": 0.800771,
+    "n": 2000
+  },
+  "L47|answer_start": {
+    "auc": 0.999244,
+    "auc_minus_nll": 0.8710479999999999,
+    "resid_nll": 2.1403242183089508e-13,
+    "auc_minus_doms": 0.9992650000000001,
+    "resid_doms": 2.774126956476376e-13,
+    "domain_chk": 0.990302,
+    "nll_alone": 0.800771,
+    "n": 2000
+  },
+  "L63|cot+2": {
+    "auc": 0.683987,
+    "auc_minus_nll": 0.585967,
+    "resid_nll": 1.5898539522840872e-13,
+    "auc_minus_doms": 0.6841309999999999,
+    "resid_doms": 2.283915075459863e-13,
+    "domain_chk": 0.956974,
+    "nll_alone": 0.6448419999999999,
+    "n": 2000
+  },
+  "L63|cot+8": {
+    "auc": 0.961808,
+    "auc_minus_nll": 0.7431719999999999,
+    "resid_nll": 1.2702400255371495e-13,
+    "auc_minus_doms": 0.962072,
+    "resid_doms": 2.2912547731897365e-13,
+    "domain_chk": 0.990765,
+    "nll_alone": 0.979031,
+    "n": 2000
+  },
+  "L63|cot+16": {
+    "auc": 0.965701,
+    "auc_minus_nll": 0.884289,
+    "resid_nll": 1.266520834596522e-13,
+    "auc_minus_doms": 0.965749,
+    "resid_doms": 2.234902846852125e-13,
+    "domain_chk": 0.983862,
+    "nll_alone": 0.999177,
+    "n": 2000
+  },
+  "L63|cot+64": {
+    "auc": 0.7908979999999999,
+    "auc_minus_nll": 0.6499429999999999,
+    "resid_nll": 1.1796659454205263e-13,
+    "auc_minus_doms": 0.791123,
+    "resid_doms": 2.3340847634259425e-13,
+    "domain_chk": 0.983341,
+    "nll_alone": 0.951313,
+    "n": 2000
+  },
+  "L63|cot_last": {
+    "auc": 0.992502,
+    "auc_minus_nll": 0.8386990000000001,
+    "resid_nll": 2.0470241730546667e-13,
+    "auc_minus_doms": 0.992538,
+    "resid_doms": 2.66592165578365e-13,
+    "domain_chk": 0.976424,
+    "nll_alone": 0.800771,
+    "n": 2000
+  },
+  "L63|answer_start": {
+    "auc": 0.998125,
+    "auc_minus_nll": 0.866,
+    "resid_nll": 1.936628795474505e-13,
+    "auc_minus_doms": 0.998136,
+    "resid_doms": 3.3572852969682606e-13,
+    "domain_chk": 0.980195,
+    "nll_alone": 0.800771,
+    "n": 2000
+  }
+}

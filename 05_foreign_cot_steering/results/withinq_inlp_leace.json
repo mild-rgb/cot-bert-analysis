@@ -1,0 +1,31 @@
+{
+  "site": "L47_answer_start",
+  "inlp_obs_head": [
+    0.6528,
+    0.6371,
+    0.6302,
+    0.6255,
+    0.6238,
+    0.6021,
+    0.6155,
+    0.634,
+    0.6358
+  ],
+  "inlp_null_head": [
+    0.6205,
+    0.6192,
+    0.6199,
+    0.6186,
+    0.6188,
+    0.619,
+    0.6203,
+    0.6197,
+    0.6204
+  ],
+  "k_to_null": 5,
+  "excess_at_k0": 0.0323,
+  "leace_before": 0.6308,
+  "leace_after": 0.9999,
+  "leace_resid": 4.33e-14,
+  "note": "LEACE at d/n~54 raised held-out AUC to 0.9999 while driving residual covariance to 4e-14 - actively misleading, not merely uninformative. Third failure of LEACE in this project."
+}

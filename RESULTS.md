@@ -7,9 +7,11 @@ per-subproject `narrative.md` files, for the full argument and the caveats.
 **Which subproject owns each block.** The tables below span all the
 subprojects that have run, so this file stays at the repo root. Blocks A–D and
 F–I (rates, contrasts, independent judges, the alpha/CoT grid, coupling) belong
-to **`03_linear_probe/`**. Block E (can anything predict the label?) belongs to
+to **`03_cross_question_aligned_misaligned_probe/`**. Block E (can anything predict the label?) belongs to
 **`01_cot_monitoring/`**. The CoT-swap causal rates live in
-**`02_cot_swapping/narrative.md`**. Judge calibration and cross-run
+**`02_cot_swapping/narrative.md`**. The foreign-CoT probe, the steering and
+suppression arms and the detection ceiling belong to
+**`05_foreign_cot_steering/`** (block J). Judge calibration and cross-run
 comparability belong to **`00_foundation/`**.
 
 > **The judge is the definition.** As of 2026-08-29 this project treats
@@ -269,3 +271,86 @@ vLLM-vs-HF path remains the live candidate.
 (`data/inlp_ablation_judged.jsonl`) with the 18k/18l HF judging code and see
 whether 0.383 moves toward 0.46. ~1,150 answers, a few minutes of GPU.
 
+
+
+---
+
+## Block J — foreign CoT: detection, steering, suppression (`05_foreign_cot_steering/`)
+
+Run 2026-09-02. Detection: layer 47, ridge probe held out by question,
+permutation null 0.515 (p95 0.532). Steering: 200 questions, answer cap 2500,
+Qwen judge unchanged, 0 blanks in 3,000 rollouts.
+
+### J1 — is foreignness in the state?
+
+| position | own vs same-domain foreign | mean NLL alone |
+|---|---|---|
+| `cot+0`, `cot+1` (forced null) | 0.500 | 0.500 |
+| `cot+2` | 0.685 | 0.645 |
+| `cot+8` | 0.971 | 0.979 |
+| `cot_last` | **0.997** | 0.801 |
+| `answer_start` | **0.999** | 0.801 |
+
+Controls: donor-domain 0.998–1.000; CoT length alone 0.5000; capture position
+0.507. NLL-discordant pairs (surprisal wrong by construction): probe 182/182,
+p=1.6e-55.
+
+### J2 — steering, all arms at 54.60 activation units
+
+| arm | rate | vs `own_ali` | t | trunc |
+|---|---|---|---|---|
+| `own_ali` baseline | 56.5% | — | — | 7.0% |
+| `rand_a2` random | 56.5% | +0.0 | 0.00 | 8.0% |
+| `clean_a2` ⊥surprise ⊥60d | 61.5% | +5.0 | 1.18 | 10.5% |
+| `foreign_ali` *(real foreign CoT)* | 72.5% | *+16.0* | *3.35* | 9.5% |
+| `raw_m` foreignness | 73.5% | +17.0 | 4.23 | 20.0% |
+| `nllp_m` surprisal ⊥60d | 81.5% | +25.0 | 6.07 | 18.0% |
+| `nll_m` surprisal | 84.0% | **+27.5** | **6.86** | 23.5% |
+| `clean_a4` **not determinate** | 74.0% | +17.5 | 3.93 | **40.5%** |
+
+### J3 — suppression (prefill a foreign CoT, steer against)
+
+| arm | rate | vs `foreign_ali` | t | vs `own_ali` |
+|---|---|---|---|---|
+| `fgn_rand_neg` −random | 81.5% | +9.0 | +2.17 | — |
+| `fgn_clean_neg` −clean | 75.0% | +2.5 | +0.59 | — |
+| `fgn_raw_neg` −foreignness | 64.0% | −8.5 | −1.93 | +7.5 |
+| `fgn_nll_neg` −surprisal | **50.5%** | **−22.0** | **−4.84** | −6.0 (t −1.34) |
+| `own_raw_neg` (own CoT) | 54.0% | — | — | −2.5 |
+
+### J4 — geometry of the direction
+
+| quantity | value | chance |
+|---|---|---|
+| foreignness direction, held out by question | 0.962 | 0.5 |
+| same, legal→security | 0.984 | 0.5 |
+| cleaned (⊥surprise ⊥60d), legal→security | 0.840 | 0.5 |
+| ‖proj‖ on `03`'s 60-dim subspace | 0.161 | 0.108 |
+| foreignness AUC after removing all 60 dims | 0.985 (from 0.985) | — |
+| cos(foreignness, surprisal) | 0.715 | 0.014 |
+
+### J5 — within-question aligned/misaligned
+
+| measure | L47 `cot_last` | L47 `answer_start` | null |
+|---|---|---|---|
+| split-half cosine, within question | 0.180 | **0.320** | 0.018 |
+| cosine across questions | 0.075 | 0.081 | −0.003 |
+| probe AUC, held out within question | 0.6020 | **0.6317** | 0.5792 |
+| probe AUC, held out across questions | 0.5672 | 0.5580 | — |
+| difference-of-means AUC | 0.5771 | 0.5872 | — |
+| INLP directions to reach the null | — | ~4–5 | — |
+
+### J6 — the detection ceiling
+
+The label is one Bernoulli draw from a CoT's propensity. With
+`D = σ²/(μ(1−μ))`, the +10.7 own_mis−own_ali gap implies SD(p)=0.161 and:
+
+| quantity | value |
+|---|---|
+| misaligned vs aligned CoT, mean NLL difference | −0.0009 nats (t −0.06) |
+| **oracle maximum AUC for any detector** | **0.689** |
+| within-prompt propensity null | 0.5692 |
+| best measured (within-question, `answer_start`) | 0.6317 |
+
+No instrument can exceed ~0.69 on this labelling. The room above chance is
+0.189 wide, not 0.5.

@@ -1,0 +1,83 @@
+{
+  "L0|cot+8": {
+    "auc": 0.8522290000000001,
+    "n_pairs": 1000,
+    "probe_pair_acc": 0.853,
+    "nll_pair_acc": 0.979,
+    "n_discordant": 21,
+    "probe_acc_on_discordant": 0.7619047619047619,
+    "binom_p": 0.013301849365234375
+  },
+  "L24|cot+8": {
+    "auc": 0.9444819999999999,
+    "n_pairs": 1000,
+    "probe_pair_acc": 0.95,
+    "nll_pair_acc": 0.979,
+    "n_discordant": 21,
+    "probe_acc_on_discordant": 0.7142857142857143,
+    "binom_p": 0.03917694091796875
+  },
+  "L47|cot+8": {
+    "auc": 0.970515,
+    "n_pairs": 1000,
+    "probe_pair_acc": 0.97,
+    "nll_pair_acc": 0.979,
+    "n_discordant": 21,
+    "probe_acc_on_discordant": 0.9047619047619048,
+    "binom_p": 0.000110626220703125
+  },
+  "L47|cot+16": {
+    "auc": 0.995387,
+    "n_pairs": 1000,
+    "probe_pair_acc": 0.997,
+    "nll_pair_acc": 0.998,
+    "n_discordant": 2,
+    "probe_acc_on_discordant": 1.0,
+    "binom_p": 0.25
+  },
+  "L47|cot+64": {
+    "auc": 0.988796,
+    "n_pairs": 1000,
+    "probe_pair_acc": 0.99,
+    "nll_pair_acc": 0.961,
+    "n_discordant": 39,
+    "probe_acc_on_discordant": 1.0,
+    "binom_p": 1.8189894035458565e-12
+  },
+  "L47|cot_last": {
+    "auc": 0.9973890000000001,
+    "n_pairs": 1000,
+    "probe_pair_acc": 0.995,
+    "nll_pair_acc": 0.818,
+    "n_discordant": 182,
+    "probe_acc_on_discordant": 1.0,
+    "binom_p": 1.6313261169996311e-55
+  },
+  "L48|cot_last": {
+    "auc": 0.997267,
+    "n_pairs": 1000,
+    "probe_pair_acc": 0.995,
+    "nll_pair_acc": 0.818,
+    "n_discordant": 182,
+    "probe_acc_on_discordant": 1.0,
+    "binom_p": 1.6313261169996311e-55
+  },
+  "L47|answer_start": {
+    "auc": 0.999244,
+    "n_pairs": 1000,
+    "probe_pair_acc": 1.0,
+    "nll_pair_acc": 0.818,
+    "n_discordant": 182,
+    "probe_acc_on_discordant": 1.0,
+    "binom_p": 1.6313261169996311e-55
+  },
+  "L63|answer_start": {
+    "auc": 0.998125,
+    "n_pairs": 1000,
+    "probe_pair_acc": 1.0,
+    "nll_pair_acc": 0.818,
+    "n_discordant": 182,
+    "probe_acc_on_discordant": 1.0,
+    "binom_p": 1.6313261169996311e-55
+  }
+}
